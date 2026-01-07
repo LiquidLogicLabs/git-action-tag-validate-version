@@ -151,21 +151,27 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 
 ### Semver
 
-- `v1.2.3`
-- `1.2.3`
+- `v1.2.3` (3-part version)
+- `1.2.3` (3-part version)
+- `v1.2` (2-part version, patch optional)
+- `1.2` (2-part version, patch optional)
 - `v1.2.3-alpha.1`
 - `1.2.3-beta.2`
+- `v1.2-alpha.1` (2-part with prerelease)
+- `1.2-beta.2` (2-part with prerelease)
 - `v1.2.3+build.1`
 - `1.2.3+20240115`
 - `v1.2.3-alpha.1+build.1`
 
 ### Simple Versioning
 
-- `1.2`
-- `1.2.3`
-- `1.2.3.4`
-- `v1.2`
-- `v1.2.3`
+- `1.2.3.4` (4-part version)
+- `1.2.3` (3-part version, but will be detected as semver in auto mode)
+- `1.2` (2-part version, but will be detected as semver in auto mode)
+- `v1.2.3` (3-part version, but will be detected as semver in auto mode)
+- `v1.2` (2-part version, but will be detected as semver in auto mode)
+
+**Note**: In auto-detection mode, 2-part and 3-part versions are detected as semver. Use `versionType: 'simple'` to force simple version parsing.
 
 ### Docker Tags
 
