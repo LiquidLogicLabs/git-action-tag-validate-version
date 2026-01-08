@@ -1,6 +1,6 @@
 {
   "name": "git-tag-validate-version-action",
-  "version": "1.0.3",
+  "version": "1.0.2",
   "description": "GitHub Action to validate and parse git tags into structured version information",
   "main": "dist/index.js",
   "scripts": {
