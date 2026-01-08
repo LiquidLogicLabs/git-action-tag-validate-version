@@ -8,6 +8,6 @@ export declare class SimpleParser extends BaseParser {
     private readonly simplePattern;
     canParse(tag: string): boolean;
     parse(tag: string): import("../types").ParserResult;
-    protected reconstructVersion(info: VersionInfo, originalTag: string): string;
+    protected reconstructVersion(info: VersionInfo, _originalTag: string): string;
 }
 //# sourceMappingURL=simple.d.ts.map

@@ -10,6 +10,6 @@ export declare class DateBasedParser extends BaseParser {
     canParse(tag: string): boolean;
     private isValidDate;
     parse(tag: string): import("../types").ParserResult;
-    protected reconstructVersion(info: VersionInfo, originalTag: string): string;
+    protected reconstructVersion(info: VersionInfo, _originalTag: string): string;
 }
 //# sourceMappingURL=date-based.d.ts.map

@@ -43,7 +43,7 @@ class CalverParser extends base_1.BaseParser {
             build: '',
         });
     }
-    reconstructVersion(info, originalTag) {
+    reconstructVersion(info, _originalTag) {
         // Reconstruct as YYYY.MM.DD with proper padding
         const year = info.major.padStart(4, '0'); // Ensure 4-digit year
         const month = info.minor.padStart(2, '0'); // Pad month to 2 digits

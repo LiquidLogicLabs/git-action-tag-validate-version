@@ -8,6 +8,6 @@ export declare class SemverParser extends BaseParser {
     private readonly semverPattern;
     canParse(tag: string): boolean;
     parse(tag: string): import("../types").ParserResult;
-    protected reconstructVersion(info: VersionInfo, originalTag: string): string;
+    protected reconstructVersion(info: VersionInfo, _originalTag: string): string;
 }
 //# sourceMappingURL=semver.d.ts.map

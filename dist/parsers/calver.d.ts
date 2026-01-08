@@ -8,6 +8,6 @@ export declare class CalverParser extends BaseParser {
     private readonly calverPattern;
     canParse(tag: string): boolean;
     parse(tag: string): import("../types").ParserResult;
-    protected reconstructVersion(info: VersionInfo, originalTag: string): string;
+    protected reconstructVersion(info: VersionInfo, _originalTag: string): string;
 }
 //# sourceMappingURL=calver.d.ts.map

@@ -25866,6 +25866,17 @@ async function run() {
         core.setOutput('day', day);
         core.setOutput('hasPrerelease', hasPrerelease);
         core.setOutput('hasBuild', hasBuild);
+        // Output summary showing the parsed version (this is what will be in the output)
+        if (parseResult.isValid) {
+            core.info(`📦 Version output: ${parseResult.version}`);
+            core.info(`   Format: ${format}`);
+            if (parseResult.info.major) {
+                core.info(`   Components: ${parseResult.info.major}.${parseResult.info.minor || '0'}.${parseResult.info.patch || '0'}`);
+            }
+        }
+        else {
+            core.warning(`⚠ Version output (original tag): ${parseResult.version}`);
+        }
         core.debug('Action completed successfully');
     }
     catch (error) {
@@ -26002,7 +26013,7 @@ class CalverParser extends base_1.BaseParser {
             build: '',
         });
     }
-    reconstructVersion(info, originalTag) {
+    reconstructVersion(info, _originalTag) {
         // Reconstruct as YYYY.MM.DD with proper padding
         const year = info.major.padStart(4, '0'); // Ensure 4-digit year
         const month = info.minor.padStart(2, '0'); // Pad month to 2 digits
@@ -26065,7 +26076,7 @@ class DateBasedParser extends base_1.BaseParser {
             build: '',
         });
     }
-    reconstructVersion(info, originalTag) {
+    reconstructVersion(info, _originalTag) {
         // Standardize to YYYY-MM-DD format with proper padding
         const year = info.major.padStart(4, '0'); // Ensure 4-digit year
         const month = info.minor.padStart(2, '0'); // Pad month to 2 digits
@@ -26336,7 +26347,7 @@ class SemverParser extends base_1.BaseParser {
             build,
         });
     }
-    reconstructVersion(info, originalTag) {
+    reconstructVersion(info, _originalTag) {
         // Normalize to 3 parts: add .0 if patch is missing
         const patch = info.patch || '0';
         let version = `${info.major}.${info.minor}.${patch}`;
@@ -26395,7 +26406,7 @@ class SimpleParser extends base_1.BaseParser {
             build: hasFourthPart ? fourth : '', // Temporarily store 4th part here
         });
     }
-    reconstructVersion(info, originalTag) {
+    reconstructVersion(info, _originalTag) {
         // Build version from non-empty components (2-4 parts)
         const parts = [info.major];
         if (info.minor)

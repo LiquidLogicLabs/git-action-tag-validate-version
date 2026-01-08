@@ -29,7 +29,7 @@ class SimpleParser extends base_1.BaseParser {
             build: hasFourthPart ? fourth : '', // Temporarily store 4th part here
         });
     }
-    reconstructVersion(info, originalTag) {
+    reconstructVersion(info, _originalTag) {
         // Build version from non-empty components (2-4 parts)
         const parts = [info.major];
         if (info.minor)
