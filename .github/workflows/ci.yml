@@ -5,6 +5,11 @@ on:
     branches: ['**']
   pull_request:
     branches: ['**']
+  workflow_call:  # Allow CI to be called by release workflow
+  workflow_dispatch:  # Allow manual triggering
+
+# Note: When called by release workflow, CI will run on the tag ref
+# When triggered directly, CI will skip on tag pushes (release handles those)
 
 permissions:
   contents: read
@@ -12,8 +17,8 @@ permissions:
 
 jobs:
   lint:
-    # Skip CI on tag pushes or release commits (handled by release workflow)
-    if: github.ref_type != 'tag' && !contains(github.event.head_commit.message, 'chore(release):')
+    # Always run when called via workflow_call or workflow_dispatch, skip only on direct tag pushes
+    if: github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type != 'tag')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,12 +46,9 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run tests
-        run: npm test
-        continue-on-error: true  # Don't fail CI if tests are missing
-
   test:
-    # Skip CI on tag pushes or release commits (handled by release workflow)
-    if: github.ref_type != 'tag' && !contains(github.event.head_commit.message, 'chore(release):')
+    # Always run when called via workflow_call or workflow_dispatch, skip only on direct tag pushes
+    if: github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type != 'tag')
+    needs: lint  # Tests run after lint
     uses: ./.github/workflows/test.yml
-
+    # test.yml runs: all tests (unit + integration)

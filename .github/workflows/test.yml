@@ -1,14 +1,16 @@
 name: Test
 
 on:
-  workflow_call:  # For CI/release workflows
-  workflow_dispatch:  # For local testing with act
+  workflow_call:  # Called by CI workflow
+  workflow_dispatch:  # Allow manual triggering
 
 permissions:
   contents: read
 
 jobs:
   test:
+    # Always run when called via workflow_call or workflow_dispatch, skip only on direct tag pushes
+    if: github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type != 'tag')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -23,25 +25,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify Jest is installed
+        run: npx jest --version
+
+      - name: Build
+        run: npm run build
+
       - name: Run tests
         run: npm test
-        continue-on-error: true  # Optional: don't fail if tests are missing
-
-      # Integration tests
-      - name: Test action with different scenarios
-        run: |
-          # Create test tags
-          git config user.name "Test User"
-          git config user.email "test@example.com"
-          git tag -a v1.2.3 -m "Test semver tag" || true
-          git tag -a 1.2.3 -m "Test simple tag" || true
-          git tag -a latest -m "Test docker tag" || true
-          
-          # Test the action (will fail if action has errors, but we continue)
-          node dist/index.js || true
-        env:
-          INPUT_TAG: ''
-          INPUT_VERSIONTYPE: 'auto'
-          INPUT_VERBOSE: 'false'
-        continue-on-error: true
-
