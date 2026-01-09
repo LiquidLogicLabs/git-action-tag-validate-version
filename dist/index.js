@@ -25750,82 +25750,80 @@ const types_1 = __nccwpck_require__(8522);
 const parsers_1 = __nccwpck_require__(8311);
 const git_1 = __nccwpck_require__(1243);
 const commit_extractor_1 = __nccwpck_require__(9897);
+const logger_1 = __nccwpck_require__(6999);
 async function run() {
     try {
         // Get inputs
         const tagInput = core.getInput('tag');
         const versionTypeInput = core.getInput('versionType') || 'auto';
         const verboseInput = core.getInput('verbose') || 'false';
-        // Enable debug logging if requested via input flag
-        // This sets ACTIONS_STEP_DEBUG so all core.debug() calls will output
-        if (verboseInput.toLowerCase() === 'true') {
-            process.env.ACTIONS_STEP_DEBUG = 'true';
-        }
-        // Debug logging (outputs when ACTIONS_STEP_DEBUG is enabled or debug input is true)
-        core.debug(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
-        core.debug(`Input versionType: ${versionTypeInput}`);
+        const verbose = verboseInput.toLowerCase() === 'true';
+        // Create logger instance
+        const logger = new logger_1.Logger(verbose);
+        logger.debug(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
+        logger.debug(`Input versionType: ${versionTypeInput}`);
         // Get tag (from input or most recent)
         let tag = null;
         if (tagInput && tagInput.trim() !== '') {
-            core.debug(`Looking for specified tag: ${tagInput}`);
+            logger.debug(`Looking for specified tag: ${tagInput}`);
             tag = await (0, git_1.getTag)(tagInput.trim());
             if (!tag) {
-                core.warning(`Tag '${tagInput}' not found`);
+                logger.warning(`Tag '${tagInput}' not found`);
                 // Tag not found - set outputs to empty
                 setEmptyOutputs();
                 return;
             }
-            core.info(`Found tag: ${tag}`);
+            logger.info(`Found tag: ${tag}`);
         }
         else {
-            core.debug(`No tag specified, getting most recent tag`);
+            logger.debug(`No tag specified, getting most recent tag`);
             tag = await (0, git_1.getMostRecentTag)();
             if (!tag) {
-                core.warning(`No tags found in repository`);
+                logger.warning(`No tags found in repository`);
                 // No tags exist - set outputs to empty
                 setEmptyOutputs();
                 return;
             }
-            core.info(`Using most recent tag: ${tag}`);
+            logger.info(`Using most recent tag: ${tag}`);
         }
         // Parse version type
         let versionType;
         try {
             versionType = versionTypeInput.toLowerCase();
             if (!Object.values(types_1.VersionType).includes(versionType)) {
-                core.debug(`Invalid versionType '${versionTypeInput}', falling back to auto`);
+                logger.debug(`Invalid versionType '${versionTypeInput}', falling back to auto`);
                 versionType = types_1.VersionType.AUTO;
             }
         }
         catch (error) {
-            core.debug(`Error parsing versionType, falling back to auto`);
+            logger.debug(`Error parsing versionType, falling back to auto`);
             versionType = types_1.VersionType.AUTO;
         }
         // Parse version
         const parserRegistry = new parsers_1.ParserRegistry();
-        core.debug(`Parsing tag '${tag}' with versionType '${versionType}'`);
+        logger.debug(`Parsing tag '${tag}' with versionType '${versionType}'`);
         const parseResult = parserRegistry.parse(tag, versionType);
         if (parseResult.isValid) {
-            core.info(`✓ Successfully parsed version: ${parseResult.version} (format: ${parseResult.format || 'unknown'})`);
+            logger.info(`✓ Successfully parsed version: ${parseResult.version} (format: ${parseResult.format || 'unknown'})`);
         }
         else {
-            core.warning(`⚠ Failed to parse tag '${tag}' as valid version`);
+            logger.warning(`⚠ Failed to parse tag '${tag}' as valid version`);
         }
-        core.debug(`Parse result: isValid=${parseResult.isValid}`);
-        core.debug(`Version components: major=${parseResult.info.major}, minor=${parseResult.info.minor}, patch=${parseResult.info.patch}`);
+        logger.debug(`Parse result: isValid=${parseResult.isValid}`);
+        logger.debug(`Version components: major=${parseResult.info.major}, minor=${parseResult.info.minor}, patch=${parseResult.info.patch}`);
         if (parseResult.info.prerelease) {
-            core.debug(`Prerelease: ${parseResult.info.prerelease}`);
+            logger.debug(`Prerelease: ${parseResult.info.prerelease}`);
         }
         if (parseResult.info.build) {
-            core.debug(`Build: ${parseResult.info.build}`);
+            logger.debug(`Build: ${parseResult.info.build}`);
         }
         // Extract commit SHA
         const commit = (0, commit_extractor_1.extractCommit)(tag);
         if (commit) {
-            core.debug(`Extracted commit SHA: ${commit}`);
+            logger.debug(`Extracted commit SHA: ${commit}`);
         }
         else {
-            core.debug(`No commit SHA found in tag`);
+            logger.debug(`No commit SHA found in tag`);
         }
         // Extract format-specific information
         const format = parseResult.format || '';
@@ -25844,12 +25842,12 @@ async function run() {
             hasPrerelease = parseResult.info.prerelease ? 'true' : 'false';
             hasBuild = parseResult.info.build ? 'true' : 'false';
         }
-        core.debug(`Detected format: ${format}`);
+        logger.debug(`Detected format: ${format}`);
         if (year) {
-            core.debug(`Date components: year=${year}, month=${month}, day=${day}`);
+            logger.debug(`Date components: year=${year}, month=${month}, day=${day}`);
         }
         if (parseResult.format === types_1.VersionType.SEMVER) {
-            core.debug(`Semver flags: hasPrerelease=${hasPrerelease}, hasBuild=${hasBuild}`);
+            logger.debug(`Semver flags: hasPrerelease=${hasPrerelease}, hasBuild=${hasBuild}`);
         }
         // Set outputs
         core.setOutput('isValid', parseResult.isValid.toString());
@@ -25868,16 +25866,16 @@ async function run() {
         core.setOutput('hasBuild', hasBuild);
         // Output summary showing the parsed version (this is what will be in the output)
         if (parseResult.isValid) {
-            core.info(`📦 Version output: ${parseResult.version}`);
-            core.info(`   Format: ${format}`);
+            logger.info(`📦 Version output: ${parseResult.version}`);
+            logger.info(`   Format: ${format}`);
             if (parseResult.info.major) {
-                core.info(`   Components: ${parseResult.info.major}.${parseResult.info.minor || '0'}.${parseResult.info.patch || '0'}`);
+                logger.info(`   Components: ${parseResult.info.major}.${parseResult.info.minor || '0'}.${parseResult.info.patch || '0'}`);
             }
         }
         else {
-            core.warning(`⚠ Version output (original tag): ${parseResult.version}`);
+            logger.warning(`⚠ Version output (original tag): ${parseResult.version}`);
         }
-        core.debug('Action completed successfully');
+        logger.debug('Action completed successfully');
     }
     catch (error) {
         if (error instanceof Error) {
@@ -25909,6 +25907,92 @@ function setEmptyOutputs() {
 }
 // Run the action
 run();
+
+
+/***/ }),
+
+/***/ 6999:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Logger = void 0;
+const core = __importStar(__nccwpck_require__(7484));
+/**
+ * Logger utility with verbose/debug support
+ * Provides consistent logging across the action
+ */
+class Logger {
+    verbose;
+    constructor(verbose = false) {
+        this.verbose = verbose;
+    }
+    /**
+     * Log an info message
+     */
+    info(message) {
+        core.info(message);
+    }
+    /**
+     * Log a warning message
+     */
+    warning(message) {
+        core.warning(message);
+    }
+    /**
+     * Log an error message
+     */
+    error(message) {
+        core.error(message);
+    }
+    /**
+     * Log a debug message - uses core.info() when verbose is true so it always shows
+     * Falls back to core.debug() when verbose is false (for when ACTIONS_STEP_DEBUG is set at workflow level)
+     */
+    debug(message) {
+        if (this.verbose) {
+            core.info(`[DEBUG] ${message}`);
+        }
+        else {
+            core.debug(message);
+        }
+    }
+}
+exports.Logger = Logger;
 
 
 /***/ }),
