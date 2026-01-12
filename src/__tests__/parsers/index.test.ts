@@ -49,8 +49,14 @@ describe('ParserRegistry', () => {
       expect(parser?.canParse('latest')).toBe(true);
     });
 
+    it('should detect docker format for opaque docker tags', () => {
+      const parser = registry.autoDetectParser('noble-93a29495-ls57');
+      expect(parser).not.toBeNull();
+      expect(parser?.canParse('noble-93a29495-ls57')).toBe(true);
+    });
+
     it('should return null for unrecognized format', () => {
-      const parser = registry.autoDetectParser('invalid-format-xyz');
+      const parser = registry.autoDetectParser('invalid/format/xyz');
       expect(parser).toBeNull();
     });
   });
@@ -76,9 +82,9 @@ describe('ParserRegistry', () => {
     });
 
     it('should return invalid result when no parser can handle tag', () => {
-      const result = registry.parse('completely-invalid-tag-xyz', VersionType.AUTO);
+      const result = registry.parse('completely/invalid/tag/xyz', VersionType.AUTO);
       expect(result.isValid).toBe(false);
-      expect(result.version).toBe('completely-invalid-tag-xyz');
+      expect(result.version).toBe('completely/invalid/tag/xyz');
     });
 
     it('should handle different version types correctly', () => {
@@ -96,6 +102,15 @@ describe('ParserRegistry', () => {
 
       const dateResult = registry.parse('20240115', VersionType.DATE_BASED);
       expect(dateResult.isValid).toBe(true);
+    });
+
+    it('should auto-detect and parse opaque docker tags', () => {
+      const result = registry.parse('noble-93a29495-ls57', VersionType.AUTO);
+      expect(result.isValid).toBe(true);
+      expect(result.format).toBe(VersionType.DOCKER);
+      expect(result.version).toBe('noble');
+      expect(result.info.prerelease).toBe('93a29495-ls57');
+      expect(result.info.major).toBe('');
     });
   });
 });

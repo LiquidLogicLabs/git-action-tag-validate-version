@@ -182,6 +182,7 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 - `1.2.3-alpine`
 - `v1.2.3-ubuntu`
 - `1.2.3-alpine-3.18`
+- `noble-93a29495-ls57`
 
 ### Calendar Versioning (Calver)
 
@@ -207,10 +208,11 @@ The `version` output is reconstructed from parsed components to ensure a consist
 - **Simple**: No 'v' prefix, only non-empty components included
   - `v1.2.3.4` → `1.2.3.4`
   - `v1.2` → `1.2`
-- **Docker**: Special tags unchanged, version tags normalized (no 'v', patch normalized if missing)
+- **Docker**: Special tags unchanged, numeric version tags normalized (no 'v', patch normalized if missing). Opaque docker tags are split into a root `version` and a `prerelease` remainder.
   - `latest` → `latest`
   - `v1.2.3-alpine` → `1.2.3-alpine`
   - `v1.2-alpine` → `1.2.0-alpine`
+  - `noble-93a29495-ls57` → `version=noble`, `prerelease=93a29495-ls57` (numeric components empty; full tag can be reconstructed as `noble-93a29495-ls57`)
 - **Calver**: Normalized to `YYYY.MM.DD` with 4-digit year and padded month/day
   - `24.01.15` → `2024.01.15`
   - `2024.1.15` → `2024.01.15`

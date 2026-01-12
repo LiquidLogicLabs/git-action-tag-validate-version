@@ -7,6 +7,7 @@ import { VersionInfo } from '../types';
 export declare class DockerParser extends BaseParser {
     private readonly specialTags;
     private readonly dockerVersionPattern;
+    private readonly dockerTagPattern;
     canParse(tag: string): boolean;
     parse(tag: string): import("../types").ParserResult;
     protected reconstructVersion(info: VersionInfo, originalTag: string): string;

@@ -11,9 +11,16 @@ class DockerParser extends base_1.BaseParser {
     specialTags = ['latest', 'stable', 'dev', 'test', 'prod', 'production', 'staging'];
     // Docker tag pattern: optional 'v' prefix, version numbers, optional suffixes with hyphens
     dockerVersionPattern = /^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([\w.-]+))?$/i;
+    // Docker tag character constraints (not a version schema):
+    // - 1 to 128 chars
+    // - first char: [A-Za-z0-9_]
+    // - remaining: [A-Za-z0-9_.-]
+    // Matches Docker's documented tag grammar: /[\w][\w.-]{0,127}/
+    dockerTagPattern = /^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$/;
     canParse(tag) {
-        // Accept special tags or version-like tags
-        return this.specialTags.includes(tag.toLowerCase()) || this.dockerVersionPattern.test(tag);
+        // Accept special tags, version-like tags, or any valid docker tag (opaque tags)
+        const lowerTag = tag.toLowerCase();
+        return this.specialTags.includes(lowerTag) || this.dockerVersionPattern.test(tag) || this.dockerTagPattern.test(tag);
     }
     parse(tag) {
         const lowerTag = tag.toLowerCase();
@@ -30,7 +37,21 @@ class DockerParser extends base_1.BaseParser {
         // Try to parse as version
         const match = tag.match(this.dockerVersionPattern);
         if (!match) {
-            return this.createFailedResult(tag);
+            // If it's a valid docker tag but not version-like, treat it as an opaque tag.
+            // For opaque tags, return the root segment (before first '-') as `version`,
+            // and store the remainder (if any) in `prerelease`.
+            if (!this.dockerTagPattern.test(tag)) {
+                return this.createFailedResult(tag);
+            }
+            const dashIndex = tag.indexOf('-');
+            const remainder = dashIndex === -1 ? '' : tag.slice(dashIndex + 1);
+            return this.createSuccessResult(tag, {
+                major: '',
+                minor: '',
+                patch: '',
+                prerelease: remainder,
+                build: '',
+            });
         }
         const [, major, minor = '', patch = '', suffix = ''] = match;
         return this.createSuccessResult(tag, {
@@ -46,6 +67,11 @@ class DockerParser extends base_1.BaseParser {
         const lowerTag = originalTag.toLowerCase();
         if (this.specialTags.includes(lowerTag)) {
             return originalTag;
+        }
+        // Opaque docker tags: root is everything before the first '-'
+        if (!info.major) {
+            const dashIndex = originalTag.indexOf('-');
+            return dashIndex === -1 ? originalTag : originalTag.slice(0, dashIndex);
         }
         // Version-like tags: normalize to 3 parts if patch missing, add suffix
         const patch = info.patch || '0';

@@ -40,9 +40,13 @@ describe('Output Format Detection', () => {
       expect(result.format).toBe(VersionType.DATE_BASED);
     });
 
-    it('should return undefined format for invalid tags', () => {
+    it('should treat opaque docker-valid tags as docker format in auto mode', () => {
       const result = registry.parse('invalid-tag-xyz', VersionType.AUTO);
-      expect(result.format).toBeUndefined();
+      expect(result.isValid).toBe(true);
+      expect(result.format).toBe(VersionType.DOCKER);
+      expect(result.version).toBe('invalid');
+      expect(result.info.prerelease).toBe('tag-xyz');
+      expect(result.info.major).toBe('');
     });
   });
 

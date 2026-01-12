@@ -22,9 +22,17 @@ describe('DockerParser', () => {
       expect(parser.canParse('1.2.3-alpine-3.18')).toBe(true);
     });
 
+    it('should parse opaque Docker tags', () => {
+      expect(parser.canParse('noble-93a29495-ls57')).toBe(true);
+      expect(parser.canParse('noble')).toBe(true);
+      expect(parser.canParse('NOBLE-93A29495-LS57')).toBe(true);
+      expect(parser.canParse('sha_abc1234-build.1')).toBe(true);
+    });
+
     it('should not parse invalid tags', () => {
       expect(parser.canParse('')).toBe(false);
       expect(parser.canParse('-')).toBe(false);
+      expect(parser.canParse('has/slash')).toBe(false);
     });
   });
 
@@ -92,8 +100,36 @@ describe('DockerParser', () => {
 
     it('should fail on invalid tags', () => {
       const result = parser.parse('invalid-tag-format');
+      expect(result.isValid).toBe(true);
+      expect(result.version).toBe('invalid'); // root before first '-'
+      expect(result.info.major).toBe('');
+      expect(result.info.minor).toBe('');
+      expect(result.info.patch).toBe('');
+      expect(result.info.prerelease).toBe('tag-format');
+    });
+
+    it('should parse opaque tags and split on first dash', () => {
+      const result = parser.parse('noble-93a29495-ls57');
+      expect(result.isValid).toBe(true);
+      expect(result.version).toBe('noble');
+      expect(result.info.major).toBe('');
+      expect(result.info.minor).toBe('');
+      expect(result.info.patch).toBe('');
+      expect(result.info.prerelease).toBe('93a29495-ls57');
+      expect(result.info.build).toBe('');
+    });
+
+    it('should parse opaque tags without dash', () => {
+      const result = parser.parse('noble');
+      expect(result.isValid).toBe(true);
+      expect(result.version).toBe('noble');
+      expect(result.info.prerelease).toBe('');
+    });
+
+    it('should fail on docker-invalid characters', () => {
+      const result = parser.parse('has/slash');
       expect(result.isValid).toBe(false);
-      expect(result.version).toBe('invalid-tag-format'); // Failed parse returns original tag
+      expect(result.version).toBe('has/slash');
     });
   });
 

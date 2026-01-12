@@ -271,7 +271,7 @@ describe('Integration Tests', () => {
       expect(outputs.hasBuild).toBe('true');
     });
 
-    it('should set outputs correctly for invalid tag', async () => {
+    it('should set outputs correctly for opaque docker-valid tags', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'invalid-tag';
         if (name === 'versionType') return 'auto';
@@ -300,9 +300,10 @@ describe('Integration Tests', () => {
         hasBuild: 'false',
       };
 
-      expect(outputs.isValid).toBe('false');
-      expect(outputs.version).toBe('invalid-tag');
-      expect(outputs.format).toBe('');
+      expect(outputs.isValid).toBe('true');
+      expect(outputs.format).toBe(VersionType.DOCKER);
+      expect(outputs.version).toBe('invalid');
+      expect(outputs.prerelease).toBe('tag');
       expect(outputs.major).toBe('');
     });
   });
