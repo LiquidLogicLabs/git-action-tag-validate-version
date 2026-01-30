@@ -10,8 +10,10 @@ async function run(): Promise<void> {
     // Get inputs
     const tagInput = core.getInput('tag');
     const versionTypeInput = core.getInput('versionType') || 'auto';
-    const verboseInput = core.getInput('verbose') || 'false';
-    const verbose = verboseInput.toLowerCase() === 'true';
+    const verboseInput = core.getBooleanInput('verbose');
+    const envStepDebug = (process.env.ACTIONS_STEP_DEBUG || '').toLowerCase();
+    const stepDebugEnabled = core.isDebug() || envStepDebug === 'true' || envStepDebug === '1';
+    const verbose = verboseInput || stepDebugEnabled;
 
     // Create logger instance
     const logger = new Logger(verbose);
