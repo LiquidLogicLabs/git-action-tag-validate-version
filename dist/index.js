@@ -25756,8 +25756,10 @@ async function run() {
         // Get inputs
         const tagInput = core.getInput('tag');
         const versionTypeInput = core.getInput('versionType') || 'auto';
-        const verboseInput = core.getInput('verbose') || 'false';
-        const verbose = verboseInput.toLowerCase() === 'true';
+        const verboseInput = core.getBooleanInput('verbose');
+        const envStepDebug = (process.env.ACTIONS_STEP_DEBUG || '').toLowerCase();
+        const stepDebugEnabled = core.isDebug() || envStepDebug === 'true' || envStepDebug === '1';
+        const verbose = verboseInput || stepDebugEnabled;
         // Create logger instance
         const logger = new logger_1.Logger(verbose);
         logger.debug(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
