@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import { getInputs } from './config';
 import { VersionType } from './types';
 import { ParserRegistry } from './parsers';
 import { getTag, getMostRecentTag } from './git';
@@ -7,16 +8,12 @@ import { Logger } from './logger';
 
 async function run(): Promise<void> {
   try {
-    // Get inputs
-    const tagInput = core.getInput('tag');
-    const versionTypeInput = core.getInput('versionType') || 'auto';
-    const verboseInput = core.getBooleanInput('verbose');
-    const envStepDebug = (process.env.ACTIONS_STEP_DEBUG || '').toLowerCase();
-    const stepDebugEnabled = core.isDebug() || envStepDebug === 'true' || envStepDebug === '1';
-    const verbose = verboseInput || stepDebugEnabled;
+    const inputs = getInputs();
+    const tagInput = inputs.tag;
+    const versionTypeInput = inputs.versionType;
 
     // Create logger instance
-    const logger = new Logger(verbose);
+    const logger = new Logger(inputs.verbose);
 
     logger.debug(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
     logger.debug(`Input versionType: ${versionTypeInput}`);
