@@ -25643,6 +25643,64 @@ module.exports = {
 
 /***/ }),
 
+/***/ 2973:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getInputs = getInputs;
+const core = __importStar(__nccwpck_require__(7484));
+function getInputs() {
+    const tag = core.getInput('tag');
+    const versionType = core.getInput('versionType') || 'auto';
+    const verboseInput = core.getBooleanInput('verbose');
+    const envStepDebug = (process.env.ACTIONS_STEP_DEBUG || '').toLowerCase();
+    const stepDebugEnabled = core.isDebug() || envStepDebug === 'true' || envStepDebug === '1';
+    const verbose = verboseInput || stepDebugEnabled;
+    return {
+        tag,
+        versionType,
+        verbose,
+    };
+}
+
+
+/***/ }),
+
 /***/ 1243:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -25746,6 +25804,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(7484));
+const config_1 = __nccwpck_require__(2973);
 const types_1 = __nccwpck_require__(8522);
 const parsers_1 = __nccwpck_require__(8311);
 const git_1 = __nccwpck_require__(1243);
@@ -25753,15 +25812,11 @@ const commit_extractor_1 = __nccwpck_require__(9897);
 const logger_1 = __nccwpck_require__(6999);
 async function run() {
     try {
-        // Get inputs
-        const tagInput = core.getInput('tag');
-        const versionTypeInput = core.getInput('versionType') || 'auto';
-        const verboseInput = core.getBooleanInput('verbose');
-        const envStepDebug = (process.env.ACTIONS_STEP_DEBUG || '').toLowerCase();
-        const stepDebugEnabled = core.isDebug() || envStepDebug === 'true' || envStepDebug === '1';
-        const verbose = verboseInput || stepDebugEnabled;
+        const inputs = (0, config_1.getInputs)();
+        const tagInput = inputs.tag;
+        const versionTypeInput = inputs.versionType;
         // Create logger instance
-        const logger = new logger_1.Logger(verbose);
+        const logger = new logger_1.Logger(inputs.verbose);
         logger.debug(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
         logger.debug(`Input versionType: ${versionTypeInput}`);
         // Get tag (from input or most recent)
