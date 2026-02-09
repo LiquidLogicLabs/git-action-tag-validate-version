@@ -147,6 +147,10 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 | `has-prerelease` | Boolean indicating if semver version has prerelease identifier |
 | `has-build` | Boolean indicating if semver version has build metadata |
 
+## Permissions
+
+No special permissions are required. Typical workflows need `contents: read` for checkout.
+
 ## Supported Version Formats
 
 ### Semver
