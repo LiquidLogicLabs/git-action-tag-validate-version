@@ -13,16 +13,16 @@ async function run(): Promise<void> {
     const versionTypeInput = inputs.versionType;
 
     // Create logger instance
-    const logger = new Logger(inputs.verbose);
+    const logger = new Logger(inputs.verbose, inputs.debugMode);
 
-    logger.debug(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
-    logger.debug(`Input versionType: ${versionTypeInput}`);
+    logger.verboseInfo(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
+    logger.verboseInfo(`Input version-type: ${versionTypeInput}`);
 
     // Get tag (from input or most recent)
     let tag: string | null = null;
 
     if (tagInput && tagInput.trim() !== '') {
-      logger.debug(`Looking for specified tag: ${tagInput}`);
+      logger.verboseInfo(`Looking for specified tag: ${tagInput}`);
       tag = await getTag(tagInput.trim());
       if (!tag) {
         logger.warning(`Tag '${tagInput}' not found`);
@@ -32,7 +32,7 @@ async function run(): Promise<void> {
       }
       logger.info(`Found tag: ${tag}`);
     } else {
-      logger.debug(`No tag specified, getting most recent tag`);
+      logger.verboseInfo(`No tag specified, getting most recent tag`);
       tag = await getMostRecentTag();
       if (!tag) {
         logger.warning(`No tags found in repository`);
@@ -48,17 +48,17 @@ async function run(): Promise<void> {
     try {
       versionType = versionTypeInput.toLowerCase() as VersionType;
       if (!Object.values(VersionType).includes(versionType)) {
-        logger.debug(`Invalid versionType '${versionTypeInput}', falling back to auto`);
+        logger.verboseInfo(`Invalid version-type '${versionTypeInput}', falling back to auto`);
         versionType = VersionType.AUTO;
       }
     } catch (error) {
-      logger.debug(`Error parsing versionType, falling back to auto`);
+      logger.verboseInfo(`Error parsing version-type, falling back to auto`);
       versionType = VersionType.AUTO;
     }
 
     // Parse version
     const parserRegistry = new ParserRegistry();
-    logger.debug(`Parsing tag '${tag}' with versionType '${versionType}'`);
+    logger.debug(`Parsing tag '${tag}' with version-type '${versionType}'`);
     const parseResult = parserRegistry.parse(tag, versionType);
 
     if (parseResult.isValid) {
@@ -109,11 +109,11 @@ async function run(): Promise<void> {
       logger.debug(`Date components: year=${year}, month=${month}, day=${day}`);
     }
     if (parseResult.format === VersionType.SEMVER) {
-      logger.debug(`Semver flags: hasPrerelease=${hasPrerelease}, hasBuild=${hasBuild}`);
+      logger.debug(`Semver flags: has-prerelease=${hasPrerelease}, has-build=${hasBuild}`);
     }
 
     // Set outputs
-    core.setOutput('isValid', parseResult.isValid.toString());
+    core.setOutput('is-valid', parseResult.isValid.toString());
     core.setOutput('version', parseResult.version);
     core.setOutput('format', format);
     core.setOutput('major', parseResult.info.major);
@@ -125,8 +125,8 @@ async function run(): Promise<void> {
     core.setOutput('year', year);
     core.setOutput('month', month);
     core.setOutput('day', day);
-    core.setOutput('hasPrerelease', hasPrerelease);
-    core.setOutput('hasBuild', hasBuild);
+    core.setOutput('has-prerelease', hasPrerelease);
+    core.setOutput('has-build', hasBuild);
 
     // Output summary showing the parsed version (this is what will be in the output)
     if (parseResult.isValid) {
@@ -153,7 +153,7 @@ async function run(): Promise<void> {
  * Set all outputs to empty/invalid state
  */
 function setEmptyOutputs(): void {
-  core.setOutput('isValid', 'false');
+  core.setOutput('is-valid', 'false');
   core.setOutput('version', '');
   core.setOutput('format', '');
   core.setOutput('major', '');
@@ -165,10 +165,9 @@ function setEmptyOutputs(): void {
   core.setOutput('year', '');
   core.setOutput('month', '');
   core.setOutput('day', '');
-  core.setOutput('hasPrerelease', 'false');
-  core.setOutput('hasBuild', 'false');
+  core.setOutput('has-prerelease', 'false');
+  core.setOutput('has-build', 'false');
 }
 
 // Run the action
 run();
-

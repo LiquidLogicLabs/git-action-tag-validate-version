@@ -35,17 +35,26 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getInputs = getInputs;
 const core = __importStar(require("@actions/core"));
+function parseBoolean(value) {
+    if (!value)
+        return false;
+    const lower = value.toLowerCase().trim();
+    return lower === 'true' || lower === '1';
+}
 function getInputs() {
     const tag = core.getInput('tag');
-    const versionType = core.getInput('versionType') || 'auto';
+    const versionType = core.getInput('version-type') || 'auto';
     const verboseInput = core.getBooleanInput('verbose');
-    const envStepDebug = (process.env.ACTIONS_STEP_DEBUG || '').toLowerCase();
-    const stepDebugEnabled = core.isDebug() || envStepDebug === 'true' || envStepDebug === '1';
-    const verbose = verboseInput || stepDebugEnabled;
+    const debugMode = (typeof core.isDebug === 'function' && core.isDebug()) ||
+        parseBoolean(process.env.ACTIONS_STEP_DEBUG) ||
+        parseBoolean(process.env.ACTIONS_RUNNER_DEBUG) ||
+        parseBoolean(process.env.RUNNER_DEBUG);
+    const verbose = verboseInput || debugMode;
     return {
         tag,
         versionType,
         verbose,
+        debugMode,
     };
 }
 //# sourceMappingURL=config.js.map

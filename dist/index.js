@@ -25684,17 +25684,26 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getInputs = getInputs;
 const core = __importStar(__nccwpck_require__(7484));
+function parseBoolean(value) {
+    if (!value)
+        return false;
+    const lower = value.toLowerCase().trim();
+    return lower === 'true' || lower === '1';
+}
 function getInputs() {
     const tag = core.getInput('tag');
-    const versionType = core.getInput('versionType') || 'auto';
+    const versionType = core.getInput('version-type') || 'auto';
     const verboseInput = core.getBooleanInput('verbose');
-    const envStepDebug = (process.env.ACTIONS_STEP_DEBUG || '').toLowerCase();
-    const stepDebugEnabled = core.isDebug() || envStepDebug === 'true' || envStepDebug === '1';
-    const verbose = verboseInput || stepDebugEnabled;
+    const debugMode = (typeof core.isDebug === 'function' && core.isDebug()) ||
+        parseBoolean(process.env.ACTIONS_STEP_DEBUG) ||
+        parseBoolean(process.env.ACTIONS_RUNNER_DEBUG) ||
+        parseBoolean(process.env.RUNNER_DEBUG);
+    const verbose = verboseInput || debugMode;
     return {
         tag,
         versionType,
         verbose,
+        debugMode,
     };
 }
 
@@ -25816,13 +25825,13 @@ async function run() {
         const tagInput = inputs.tag;
         const versionTypeInput = inputs.versionType;
         // Create logger instance
-        const logger = new logger_1.Logger(inputs.verbose);
-        logger.debug(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
-        logger.debug(`Input versionType: ${versionTypeInput}`);
+        const logger = new logger_1.Logger(inputs.verbose, inputs.debugMode);
+        logger.verboseInfo(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
+        logger.verboseInfo(`Input version-type: ${versionTypeInput}`);
         // Get tag (from input or most recent)
         let tag = null;
         if (tagInput && tagInput.trim() !== '') {
-            logger.debug(`Looking for specified tag: ${tagInput}`);
+            logger.verboseInfo(`Looking for specified tag: ${tagInput}`);
             tag = await (0, git_1.getTag)(tagInput.trim());
             if (!tag) {
                 logger.warning(`Tag '${tagInput}' not found`);
@@ -25833,7 +25842,7 @@ async function run() {
             logger.info(`Found tag: ${tag}`);
         }
         else {
-            logger.debug(`No tag specified, getting most recent tag`);
+            logger.verboseInfo(`No tag specified, getting most recent tag`);
             tag = await (0, git_1.getMostRecentTag)();
             if (!tag) {
                 logger.warning(`No tags found in repository`);
@@ -25848,17 +25857,17 @@ async function run() {
         try {
             versionType = versionTypeInput.toLowerCase();
             if (!Object.values(types_1.VersionType).includes(versionType)) {
-                logger.debug(`Invalid versionType '${versionTypeInput}', falling back to auto`);
+                logger.verboseInfo(`Invalid version-type '${versionTypeInput}', falling back to auto`);
                 versionType = types_1.VersionType.AUTO;
             }
         }
         catch (error) {
-            logger.debug(`Error parsing versionType, falling back to auto`);
+            logger.verboseInfo(`Error parsing version-type, falling back to auto`);
             versionType = types_1.VersionType.AUTO;
         }
         // Parse version
         const parserRegistry = new parsers_1.ParserRegistry();
-        logger.debug(`Parsing tag '${tag}' with versionType '${versionType}'`);
+        logger.debug(`Parsing tag '${tag}' with version-type '${versionType}'`);
         const parseResult = parserRegistry.parse(tag, versionType);
         if (parseResult.isValid) {
             logger.info(`✓ Successfully parsed version: ${parseResult.version} (format: ${parseResult.format || 'unknown'})`);
@@ -25904,10 +25913,10 @@ async function run() {
             logger.debug(`Date components: year=${year}, month=${month}, day=${day}`);
         }
         if (parseResult.format === types_1.VersionType.SEMVER) {
-            logger.debug(`Semver flags: hasPrerelease=${hasPrerelease}, hasBuild=${hasBuild}`);
+            logger.debug(`Semver flags: has-prerelease=${hasPrerelease}, has-build=${hasBuild}`);
         }
         // Set outputs
-        core.setOutput('isValid', parseResult.isValid.toString());
+        core.setOutput('is-valid', parseResult.isValid.toString());
         core.setOutput('version', parseResult.version);
         core.setOutput('format', format);
         core.setOutput('major', parseResult.info.major);
@@ -25919,8 +25928,8 @@ async function run() {
         core.setOutput('year', year);
         core.setOutput('month', month);
         core.setOutput('day', day);
-        core.setOutput('hasPrerelease', hasPrerelease);
-        core.setOutput('hasBuild', hasBuild);
+        core.setOutput('has-prerelease', hasPrerelease);
+        core.setOutput('has-build', hasBuild);
         // Output summary showing the parsed version (this is what will be in the output)
         if (parseResult.isValid) {
             logger.info(`📦 Version output: ${parseResult.version}`);
@@ -25947,7 +25956,7 @@ async function run() {
  * Set all outputs to empty/invalid state
  */
 function setEmptyOutputs() {
-    core.setOutput('isValid', 'false');
+    core.setOutput('is-valid', 'false');
     core.setOutput('version', '');
     core.setOutput('format', '');
     core.setOutput('major', '');
@@ -25959,8 +25968,8 @@ function setEmptyOutputs() {
     core.setOutput('year', '');
     core.setOutput('month', '');
     core.setOutput('day', '');
-    core.setOutput('hasPrerelease', 'false');
-    core.setOutput('hasBuild', 'false');
+    core.setOutput('has-prerelease', 'false');
+    core.setOutput('has-build', 'false');
 }
 // Run the action
 run();
@@ -26012,11 +26021,17 @@ const core = __importStar(__nccwpck_require__(7484));
 /**
  * Logger utility with verbose/debug support
  * Provides consistent logging across the action
+ *
+ * Two levels of extra output:
+ *   verbose  (verbose=true OR debug=true) — useful operational detail
+ *   debug    (debug=true only)            — full diagnostic detail
  */
 class Logger {
     verbose;
-    constructor(verbose = false) {
-        this.verbose = verbose;
+    debugMode;
+    constructor(verbose = false, debugMode = false) {
+        this.verbose = verbose || debugMode;
+        this.debugMode = debugMode;
     }
     /**
      * Log an info message
@@ -26037,16 +26052,30 @@ class Logger {
         core.error(message);
     }
     /**
-     * Log a debug message - uses core.info() when verbose is true so it always shows
-     * Falls back to core.debug() when verbose is false (for when ACTIONS_STEP_DEBUG is set at workflow level)
+     * Shown when verbose=true OR debug=true — useful operational detail
+     */
+    verboseInfo(message) {
+        if (this.verbose) {
+            core.info(message);
+        }
+    }
+    /**
+     * Shown when debug=true (ACTIONS_STEP_DEBUG) — full diagnostic detail
+     * Falls back to core.debug() when debugMode is false (for when ACTIONS_STEP_DEBUG is set at workflow level)
      */
     debug(message) {
-        if (this.verbose) {
+        if (this.debugMode) {
             core.info(`[DEBUG] ${message}`);
         }
         else {
             core.debug(message);
         }
+    }
+    isVerbose() {
+        return this.verbose;
+    }
+    isDebug() {
+        return this.debugMode;
     }
 }
 exports.Logger = Logger;

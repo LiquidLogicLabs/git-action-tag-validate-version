@@ -35,7 +35,7 @@ describe('Integration Tests', () => {
     it('should use most recent tag when tag input is empty', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return '';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -53,7 +53,7 @@ describe('Integration Tests', () => {
     it('should set empty outputs when no tags exist', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return '';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -61,7 +61,7 @@ describe('Integration Tests', () => {
 
       // Simulate empty outputs
       const outputs = {
-        isValid: 'false',
+        'is-valid': 'false',
         version: '',
         major: '',
         minor: '',
@@ -71,7 +71,7 @@ describe('Integration Tests', () => {
         commit: '',
       };
 
-      expect(outputs.isValid).toBe('false');
+      expect(outputs['is-valid']).toBe('false');
       expect(outputs.version).toBe('');
     });
   });
@@ -80,7 +80,7 @@ describe('Integration Tests', () => {
     it('should use specified tag when provided', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'v1.2.3';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -96,14 +96,14 @@ describe('Integration Tests', () => {
     it('should set empty outputs when specified tag does not exist', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'nonexistent';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
       mockGetTag.mockResolvedValue(null);
 
       const outputs = {
-        isValid: 'false',
+        'is-valid': 'false',
         version: '',
         major: '',
         minor: '',
@@ -113,16 +113,16 @@ describe('Integration Tests', () => {
         commit: '',
       };
 
-      expect(outputs.isValid).toBe('false');
+      expect(outputs['is-valid']).toBe('false');
       expect(outputs.version).toBe('');
     });
   });
 
   describe('Full Action Flow - Version Type Handling', () => {
-    it('should use auto-detection when versionType is auto', async () => {
+    it('should use auto-detection when version-type is auto', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'v1.2.3';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -137,7 +137,7 @@ describe('Integration Tests', () => {
     it('should use explicit version type when provided', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return '1.2.3';
-        if (name === 'versionType') return 'semver';
+        if (name === 'version-type') return 'semver';
         return '';
       });
 
@@ -149,10 +149,10 @@ describe('Integration Tests', () => {
       expect(parseResult.isValid).toBe(true);
     });
 
-    it('should fall back to auto when invalid versionType provided', async () => {
+    it('should fall back to auto when invalid version-type provided', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'v1.2.3';
-        if (name === 'versionType') return 'invalid';
+        if (name === 'version-type') return 'invalid';
         return '';
       });
 
@@ -170,7 +170,7 @@ describe('Integration Tests', () => {
     it('should call debug logging (output controlled by ACTIONS_STEP_DEBUG)', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'v1.2.3';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -179,7 +179,7 @@ describe('Integration Tests', () => {
       // Debug logging is always called, but only outputs when ACTIONS_STEP_DEBUG is set
       // This is the standard GitHub Actions behavior
       mockDebug('Input tag: v1.2.3');
-      mockDebug('Input versionType: auto');
+      mockDebug('Input version-type: auto');
       mockDebug('Looking for specified tag: v1.2.3');
       mockDebug('Found tag: v1.2.3');
 
@@ -191,7 +191,7 @@ describe('Integration Tests', () => {
     it('should extract commit from semver build metadata format', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'v1.2.3+abc1234';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -204,7 +204,7 @@ describe('Integration Tests', () => {
     it('should extract commit from hyphen suffix format', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'v1.2.3-abc1234';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -217,7 +217,7 @@ describe('Integration Tests', () => {
     it('should return empty string when no commit found', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'v1.2.3';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -232,7 +232,7 @@ describe('Integration Tests', () => {
     it('should set all outputs correctly for valid tag', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'v1.2.3-alpha.1+build.1';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -243,7 +243,7 @@ describe('Integration Tests', () => {
       const commit = extractCommit('v1.2.3-alpha.1+build.1');
 
       const outputs = {
-        isValid: parseResult.isValid.toString(),
+        'is-valid': parseResult.isValid.toString(),
         version: parseResult.version,
         format: parseResult.format || '',
         major: parseResult.info.major,
@@ -255,11 +255,11 @@ describe('Integration Tests', () => {
         year: '',
         month: '',
         day: '',
-        hasPrerelease: parseResult.info.prerelease ? 'true' : 'false',
-        hasBuild: parseResult.info.build ? 'true' : 'false',
+        'has-prerelease': parseResult.info.prerelease ? 'true' : 'false',
+        'has-build': parseResult.info.build ? 'true' : 'false',
       };
 
-      expect(outputs.isValid).toBe('true');
+      expect(outputs['is-valid']).toBe('true');
       expect(outputs.version).toBe('1.2.3-alpha.1+build.1'); // Reconstructed without 'v' prefix
       expect(outputs.format).toBe(VersionType.SEMVER);
       expect(outputs.major).toBe('1');
@@ -267,14 +267,14 @@ describe('Integration Tests', () => {
       expect(outputs.patch).toBe('3');
       expect(outputs.prerelease).toBe('alpha.1');
       expect(outputs.build).toBe('build.1');
-      expect(outputs.hasPrerelease).toBe('true');
-      expect(outputs.hasBuild).toBe('true');
+      expect(outputs['has-prerelease']).toBe('true');
+      expect(outputs['has-build']).toBe('true');
     });
 
     it('should set outputs correctly for opaque docker-valid tags', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'invalid-tag';
-        if (name === 'versionType') return 'auto';
+        if (name === 'version-type') return 'auto';
         return '';
       });
 
@@ -284,7 +284,7 @@ describe('Integration Tests', () => {
       const parseResult = registry.parse('invalid-tag', VersionType.AUTO);
 
       const outputs = {
-        isValid: parseResult.isValid.toString(),
+        'is-valid': parseResult.isValid.toString(),
         version: parseResult.version,
         format: parseResult.format || '',
         major: parseResult.info.major,
@@ -296,11 +296,11 @@ describe('Integration Tests', () => {
         year: '',
         month: '',
         day: '',
-        hasPrerelease: 'false',
-        hasBuild: 'false',
+        'has-prerelease': 'false',
+        'has-build': 'false',
       };
 
-      expect(outputs.isValid).toBe('true');
+      expect(outputs['is-valid']).toBe('true');
       expect(outputs.format).toBe(VersionType.DOCKER);
       expect(outputs.version).toBe('invalid');
       expect(outputs.prerelease).toBe('tag');
@@ -308,4 +308,3 @@ describe('Integration Tests', () => {
     });
   });
 });
-

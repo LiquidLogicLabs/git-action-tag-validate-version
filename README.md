@@ -42,7 +42,7 @@ A GitHub Action that validates and parses git tags into structured version infor
   uses: LiquidLogicLabs/git-action-tag-validate-version@v1
   with:
     tag: 'v1.2.3-alpha.1'
-    versionType: 'semver'
+    version-type: 'semver'
   id: version
 ```
 
@@ -115,7 +115,7 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
     echo "Major: ${{ steps.version.outputs.major }}"
     echo "Minor: ${{ steps.version.outputs.minor }}"
     echo "Patch: ${{ steps.version.outputs.patch }}"
-    if [ "${{ steps.version.outputs.isValid }}" == "true" ]; then
+    if [ "${{ steps.version.outputs.is-valid }}" == "true" ]; then
       echo "Version is valid!"
     fi
 ```
@@ -125,14 +125,14 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `tag` | Specific tag to parse. If empty, uses most recent tag | No | `''` |
-| `versionType` | Version format type (`auto`, `semver`, `simple`, `docker`, `calver`, `date-based`) | No | `auto` |
+| `version-type` | Version format type (`auto`, `semver`, `simple`, `docker`, `calver`, `date-based`) | No | `auto` |
 | `verbose` | Force enable debug logging (sets `ACTIONS_STEP_DEBUG=true`). Can also be enabled via `ACTIONS_STEP_DEBUG` environment variable | No | `false` |
 
 ## Outputs
 
 | Output | Description |
 |--------|-------------|
-| `isValid` | Boolean indicating if version was successfully validated and parsed |
+| `is-valid` | Boolean indicating if version was successfully validated and parsed |
 | `version` | Normalized version string reconstructed from parsed components (format-compliant, no 'v' prefix, standardized separators). Returns original tag if parsing failed |
 | `format` | Detected version format type (semver, simple, docker, calver, date-based, or empty if invalid) |
 | `major` | Major version number (if available) |
@@ -144,8 +144,8 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 | `year` | Year component (for calver and date-based formats only) |
 | `month` | Month component (for calver and date-based formats only) |
 | `day` | Day component (for calver and date-based formats only) |
-| `hasPrerelease` | Boolean indicating if semver version has prerelease identifier |
-| `hasBuild` | Boolean indicating if semver version has build metadata |
+| `has-prerelease` | Boolean indicating if semver version has prerelease identifier |
+| `has-build` | Boolean indicating if semver version has build metadata |
 
 ## Supported Version Formats
 
@@ -171,7 +171,7 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 - `v1.2.3` (3-part version, but will be detected as semver in auto mode)
 - `v1.2` (2-part version, but will be detected as semver in auto mode)
 
-**Note**: In auto-detection mode, 2-part and 3-part versions are detected as semver. Use `versionType: 'simple'` to force simple version parsing.
+**Note**: In auto-detection mode, 2-part and 3-part versions are detected as semver. Use `version-type: 'simple'` to force simple version parsing.
 
 ### Docker Tags
 
@@ -268,7 +268,7 @@ jobs:
   uses: LiquidLogicLabs/git-action-tag-validate-version@v1
   with:
     tag: '1.2.3-alpine'
-    versionType: 'docker'
+    version-type: 'docker'
   id: version
 ```
 
@@ -279,16 +279,16 @@ jobs:
   uses: LiquidLogicLabs/git-action-tag-validate-version@v1
   with:
     tag: '2024.01.15'
-    versionType: 'calver'
+    version-type: 'calver'
   id: version
 ```
 
 ## Error Handling
 
-- **Tag not found**: Sets `isValid=false`, `version=""`, all other outputs empty
-- **No tags exist**: Sets `isValid=false`, `version=""`, all other outputs empty
-- **Parse failure**: Sets `isValid=false`, preserves original `version` string, sets numeric outputs to empty strings
-- **Invalid versionType**: Falls back to `auto` detection
+- **Tag not found**: Sets `is-valid=false`, `version=""`, all other outputs empty
+- **No tags exist**: Sets `is-valid=false`, `version=""`, all other outputs empty
+- **Parse failure**: Sets `is-valid=false`, preserves original `version` string, sets numeric outputs to empty strings
+- **Invalid version-type**: Falls back to `auto` detection
 
 ## Security
 
