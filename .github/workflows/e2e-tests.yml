@@ -1,0 +1,52 @@
+name: E2E Tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow || 'E2E Tests' }}-${{ github.ref || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run action with tag (from ref / repo tags)
+        id: validate
+        uses: ./
+        with:
+          tag: ${{ github.ref_name }}
+          version-type: auto
+
+      - name: Verify outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "version: ${{ steps.validate.outputs.version }}"
+          echo "is-valid: ${{ steps.validate.outputs.is-valid }}"
+          echo "has-prerelease: ${{ steps.validate.outputs.has-prerelease }}"
+          [ -n "${{ steps.validate.outputs.version }}" ]
+          [ "${{ steps.validate.outputs.is-valid }}" = "true" ] || [ "${{ steps.validate.outputs.is-valid }}" = "false" ]
+
+      - name: Run action with explicit tag v1.0.0
+        id: explicit
+        uses: ./
+        with:
+          tag: v1.0.0
+          version-type: auto
+
+      - name: Verify explicit tag outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ "${{ steps.explicit.outputs.is-valid }}" = "true" ]
+          [ "${{ steps.explicit.outputs.version }}" = "1.0.0" ] || [ "${{ steps.explicit.outputs.version }}" = "v1.0.0" ]

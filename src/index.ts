@@ -169,5 +169,9 @@ function setEmptyOutputs(): void {
   core.setOutput('has-build', 'false');
 }
 
-// Run the action
-run();
+// Run the action when executed as main (not when required from tests)
+if (typeof require !== 'undefined' && require.main === module) {
+  run();
+}
+
+export { run };
