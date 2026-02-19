@@ -1,3 +1,12 @@
+# [2.1.0](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.0.1...v2.1.0) (2026-02-19)
+
+
+### Features
+
+* add regex version-type with custom pattern support ([ccbbb5c](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/ccbbb5c33962e8dc92b620083a7eaddf9f9531d6))
+
+
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
