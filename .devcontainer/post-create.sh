@@ -3,8 +3,17 @@
 # Runs once after the container is first created.
 set -euo pipefail
 
-echo "==> Installing npm dependencies..."
-npm ci
+echo "==> Installing dependencies..."
+if grep -qs '"packageManager".*"yarn"' package.json || [ -f yarn.lock ]; then
+  echo "    (detected yarn)"
+  corepack enable
+  yarn install
+elif [ -f package-lock.json ]; then
+  echo "    (detected npm)"
+  npm ci
+else
+  npm install
+fi
 
 echo "==> Installing act CLI for local GitHub Actions testing..."
 if ! command -v act &>/dev/null; then
