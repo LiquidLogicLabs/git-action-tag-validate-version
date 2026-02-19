@@ -11,7 +11,7 @@ inputs:
     required: false
     default: 'auto'
   version-regex:
-    description: 'Custom regex pattern used when version-type is "regex". Named capture groups (major, minor, patch, prerelease, build) are mapped to outputs.'
+    description: 'Custom regex pattern used when version-type is "regex". Named groups (?<major>, ?<minor>, ?<patch>, ?<prerelease>, ?<build>) or positional groups (1=major, 2=minor, 3=patch, 4=prerelease, 5=build) are mapped to outputs. Named groups take priority.'
     required: false
     default: ''
   verbose:

@@ -64,8 +64,51 @@ describe('RegexParser', () => {
     });
   });
 
-  describe('parse — no named groups', () => {
-    it('should be valid with empty components when no named groups are used', () => {
+  describe('parse — positional capture groups', () => {
+    it('should map positional groups to major/minor/patch in order', () => {
+      const parser = new RegexParser('^v?(\\d+)\\.(\\d+)\\.(\\d+)$');
+      const result = parser.parse('v2.9.1');
+      expect(result.isValid).toBe(true);
+      expect(result.version).toBe('2.9.1');
+      expect(result.info.major).toBe('2');
+      expect(result.info.minor).toBe('9');
+      expect(result.info.patch).toBe('1');
+      expect(result.info.prerelease).toBe('');
+      expect(result.info.build).toBe('');
+      expect(result.format).toBe(VersionType.REGEX);
+    });
+
+    it('should map positional groups 4 and 5 to prerelease and build', () => {
+      const parser = new RegexParser(
+        '^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([\\w.]+))?(?:\\+([\\w.]+))?$',
+      );
+      const result = parser.parse('1.0.0-beta.1+exp.42');
+      expect(result.isValid).toBe(true);
+      expect(result.version).toBe('1.0.0-beta.1+exp.42');
+      expect(result.info.prerelease).toBe('beta.1');
+      expect(result.info.build).toBe('exp.42');
+    });
+
+    it('should handle partial positional groups (only major and minor)', () => {
+      const parser = new RegexParser('^v?(\\d+)\\.(\\d+)$');
+      const result = parser.parse('3.14');
+      expect(result.isValid).toBe(true);
+      expect(result.version).toBe('3.14');
+      expect(result.info.major).toBe('3');
+      expect(result.info.minor).toBe('14');
+      expect(result.info.patch).toBe('');
+    });
+
+    it('should prefer named groups over positional when both present', () => {
+      // Named group covers major; second positional group covers minor
+      const parser = new RegexParser('^(?<major>\\d+)\\.(\\d+)\\.(\\d+)$');
+      const result = parser.parse('5.6.7');
+      expect(result.info.major).toBe('5');  // from named group
+      expect(result.info.minor).toBe('6');  // from match[2]
+      expect(result.info.patch).toBe('7');  // from match[3]
+    });
+
+    it('should be valid with empty components when no capturing groups are used', () => {
       const parser = new RegexParser('^release-\\d{8}$');
       const result = parser.parse('release-20240115');
       expect(result.isValid).toBe(true);
