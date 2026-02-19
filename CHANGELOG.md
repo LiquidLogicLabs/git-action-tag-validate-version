@@ -1,3 +1,13 @@
+## [2.1.1](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.0...v2.1.1) (2026-02-19)
+
+
+### Features
+
+* **regex:** add positional capture group support ([4072815](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/40728154cdb3a085cfac513a38393abba082a03f))
+* **regex:** add positional capture group support and update docs ([8dde88e](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/8dde88effa39d784d8957506b9f554601cb0048a))
+
+
+
 # [2.1.0](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.0.1...v2.1.0) (2026-02-19)
 
 
