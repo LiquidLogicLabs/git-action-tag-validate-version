@@ -7,18 +7,22 @@ const simple_1 = require("./simple");
 const docker_1 = require("./docker");
 const calver_1 = require("./calver");
 const date_based_1 = require("./date-based");
+const regex_1 = require("./regex");
 /**
  * Parser registry and routing logic
  */
 class ParserRegistry {
     parsers = new Map();
-    constructor() {
+    constructor(regexPattern) {
         // Initialize parsers
         this.parsers.set(types_1.VersionType.SEMVER, new semver_1.SemverParser());
         this.parsers.set(types_1.VersionType.SIMPLE, new simple_1.SimpleParser());
         this.parsers.set(types_1.VersionType.DOCKER, new docker_1.DockerParser());
         this.parsers.set(types_1.VersionType.CALVER, new calver_1.CalverParser());
         this.parsers.set(types_1.VersionType.DATE_BASED, new date_based_1.DateBasedParser());
+        if (regexPattern) {
+            this.parsers.set(types_1.VersionType.REGEX, new regex_1.RegexParser(regexPattern));
+        }
     }
     /**
      * Get parser for a specific version type

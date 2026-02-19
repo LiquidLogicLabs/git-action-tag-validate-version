@@ -25693,6 +25693,7 @@ function parseBoolean(value) {
 function getInputs() {
     const tag = core.getInput('tag');
     const versionType = core.getInput('version-type') || 'auto';
+    const versionRegex = core.getInput('version-regex');
     const verboseInput = core.getBooleanInput('verbose');
     const debugMode = (typeof core.isDebug === 'function' && core.isDebug()) ||
         parseBoolean(process.env.ACTIONS_STEP_DEBUG) ||
@@ -25702,6 +25703,7 @@ function getInputs() {
     return {
         tag,
         versionType,
+        versionRegex,
         verbose,
         debugMode,
     };
@@ -25829,6 +25831,9 @@ async function run() {
         const logger = new logger_1.Logger(inputs.verbose, inputs.debugMode);
         logger.verboseInfo(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
         logger.verboseInfo(`Input version-type: ${versionTypeInput}`);
+        if (inputs.versionRegex) {
+            logger.verboseInfo(`Input version-regex: ${inputs.versionRegex}`);
+        }
         // Get tag (from input or most recent)
         let tag = null;
         if (tagInput && tagInput.trim() !== '') {
@@ -25866,8 +25871,13 @@ async function run() {
             logger.verboseInfo(`Error parsing version-type, falling back to auto`);
             versionType = types_1.VersionType.AUTO;
         }
+        // Guard: regex type requires a pattern
+        if (versionType === types_1.VersionType.REGEX && !inputs.versionRegex) {
+            core.setFailed(`version-type is 'regex' but no version-regex pattern was provided`);
+            return;
+        }
         // Parse version
-        const parserRegistry = new parsers_1.ParserRegistry();
+        const parserRegistry = new parsers_1.ParserRegistry(inputs.versionRegex || undefined);
         logger.debug(`Parsing tag '${tag}' with version-type '${versionType}'`);
         const parseResult = parserRegistry.parse(tag, versionType);
         if (parseResult.isValid) {
@@ -26369,18 +26379,22 @@ const simple_1 = __nccwpck_require__(4532);
 const docker_1 = __nccwpck_require__(2630);
 const calver_1 = __nccwpck_require__(9279);
 const date_based_1 = __nccwpck_require__(8704);
+const regex_1 = __nccwpck_require__(671);
 /**
  * Parser registry and routing logic
  */
 class ParserRegistry {
     parsers = new Map();
-    constructor() {
+    constructor(regexPattern) {
         // Initialize parsers
         this.parsers.set(types_1.VersionType.SEMVER, new semver_1.SemverParser());
         this.parsers.set(types_1.VersionType.SIMPLE, new simple_1.SimpleParser());
         this.parsers.set(types_1.VersionType.DOCKER, new docker_1.DockerParser());
         this.parsers.set(types_1.VersionType.CALVER, new calver_1.CalverParser());
         this.parsers.set(types_1.VersionType.DATE_BASED, new date_based_1.DateBasedParser());
+        if (regexPattern) {
+            this.parsers.set(types_1.VersionType.REGEX, new regex_1.RegexParser(regexPattern));
+        }
     }
     /**
      * Get parser for a specific version type
@@ -26482,6 +26496,64 @@ class ParserRegistry {
     }
 }
 exports.ParserRegistry = ParserRegistry;
+
+
+/***/ }),
+
+/***/ 671:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RegexParser = void 0;
+const types_1 = __nccwpck_require__(8522);
+const base_1 = __nccwpck_require__(7651);
+/**
+ * Parser that validates and extracts version components using a user-supplied regex.
+ * Named capture groups map to version outputs:
+ *   (?<major>...), (?<minor>...), (?<patch>...), (?<prerelease>...), (?<build>...)
+ * The `version` output is reconstructed from captured components (major.minor.patch[-prerelease][+build]).
+ * If no named groups are captured the version falls back to the tag with any leading `v` stripped.
+ */
+class RegexParser extends base_1.BaseParser {
+    pattern;
+    constructor(pattern) {
+        super();
+        // Throws SyntaxError on invalid pattern — propagates to core.setFailed() in index.ts
+        this.pattern = new RegExp(pattern);
+    }
+    canParse(tag) {
+        return this.pattern.test(tag);
+    }
+    parse(tag) {
+        const match = tag.match(this.pattern);
+        if (!match)
+            return this.createFailedResult(tag);
+        const groups = match.groups ?? {};
+        const info = {
+            major: groups['major'] ?? '',
+            minor: groups['minor'] ?? '',
+            patch: groups['patch'] ?? '',
+            prerelease: groups['prerelease'] ?? '',
+            build: groups['build'] ?? '',
+        };
+        const result = this.createSuccessResult(tag, info);
+        return { ...result, format: types_1.VersionType.REGEX };
+    }
+    reconstructVersion(info, originalTag) {
+        const base = [info.major, info.minor, info.patch].filter(Boolean).join('.');
+        if (!base)
+            return originalTag.replace(/^v/, '');
+        let version = base;
+        if (info.prerelease)
+            version += `-${info.prerelease}`;
+        if (info.build)
+            version += `+${info.build}`;
+        return version;
+    }
+}
+exports.RegexParser = RegexParser;
 
 
 /***/ }),
@@ -26642,6 +26714,7 @@ var VersionType;
     VersionType["DOCKER"] = "docker";
     VersionType["CALVER"] = "calver";
     VersionType["DATE_BASED"] = "date-based";
+    VersionType["REGEX"] = "regex";
 })(VersionType || (exports.VersionType = VersionType = {}));
 
 

@@ -5,6 +5,7 @@ import { SimpleParser } from './simple';
 import { DockerParser } from './docker';
 import { CalverParser } from './calver';
 import { DateBasedParser } from './date-based';
+import { RegexParser } from './regex';
 
 /**
  * Parser registry and routing logic
@@ -12,13 +13,16 @@ import { DateBasedParser } from './date-based';
 export class ParserRegistry {
   private readonly parsers: Map<VersionType, VersionParser> = new Map();
 
-  constructor() {
+  constructor(regexPattern?: string) {
     // Initialize parsers
     this.parsers.set(VersionType.SEMVER, new SemverParser());
     this.parsers.set(VersionType.SIMPLE, new SimpleParser());
     this.parsers.set(VersionType.DOCKER, new DockerParser());
     this.parsers.set(VersionType.CALVER, new CalverParser());
     this.parsers.set(VersionType.DATE_BASED, new DateBasedParser());
+    if (regexPattern) {
+      this.parsers.set(VersionType.REGEX, new RegexParser(regexPattern));
+    }
   }
 
   /**

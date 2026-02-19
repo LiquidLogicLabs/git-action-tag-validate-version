@@ -12,5 +12,6 @@ var VersionType;
     VersionType["DOCKER"] = "docker";
     VersionType["CALVER"] = "calver";
     VersionType["DATE_BASED"] = "date-based";
+    VersionType["REGEX"] = "regex";
 })(VersionType || (exports.VersionType = VersionType = {}));
 //# sourceMappingURL=types.js.map

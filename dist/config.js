@@ -44,6 +44,7 @@ function parseBoolean(value) {
 function getInputs() {
     const tag = core.getInput('tag');
     const versionType = core.getInput('version-type') || 'auto';
+    const versionRegex = core.getInput('version-regex');
     const verboseInput = core.getBooleanInput('verbose');
     const debugMode = (typeof core.isDebug === 'function' && core.isDebug()) ||
         parseBoolean(process.env.ACTIONS_STEP_DEBUG) ||
@@ -53,6 +54,7 @@ function getInputs() {
     return {
         tag,
         versionType,
+        versionRegex,
         verbose,
         debugMode,
     };

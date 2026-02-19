@@ -17,6 +17,9 @@ async function run(): Promise<void> {
 
     logger.verboseInfo(`Input tag: ${tagInput || '(empty - will use most recent)'}`);
     logger.verboseInfo(`Input version-type: ${versionTypeInput}`);
+    if (inputs.versionRegex) {
+      logger.verboseInfo(`Input version-regex: ${inputs.versionRegex}`);
+    }
 
     // Get tag (from input or most recent)
     let tag: string | null = null;
@@ -56,8 +59,14 @@ async function run(): Promise<void> {
       versionType = VersionType.AUTO;
     }
 
+    // Guard: regex type requires a pattern
+    if (versionType === VersionType.REGEX && !inputs.versionRegex) {
+      core.setFailed(`version-type is 'regex' but no version-regex pattern was provided`);
+      return;
+    }
+
     // Parse version
-    const parserRegistry = new ParserRegistry();
+    const parserRegistry = new ParserRegistry(inputs.versionRegex || undefined);
     logger.debug(`Parsing tag '${tag}' with version-type '${versionType}'`);
     const parseResult = parserRegistry.parse(tag, versionType);
 

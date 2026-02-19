@@ -7,9 +7,13 @@ inputs:
     required: false
     default: ''
   version-type:
-    description: 'Version format type (auto, semver, simple, docker, calver, date-based). Default: auto'
+    description: 'Version format type (auto, semver, simple, docker, calver, date-based, regex). Default: auto'
     required: false
     default: 'auto'
+  version-regex:
+    description: 'Custom regex pattern used when version-type is "regex". Named capture groups (major, minor, patch, prerelease, build) are mapped to outputs.'
+    required: false
+    default: ''
   verbose:
     description: 'Enable verbose debug logging. Also enabled when ACTIONS_STEP_DEBUG=true.'
     required: false

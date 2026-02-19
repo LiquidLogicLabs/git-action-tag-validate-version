@@ -26,5 +26,6 @@ export declare enum VersionType {
     SIMPLE = "simple",
     DOCKER = "docker",
     CALVER = "calver",
-    DATE_BASED = "date-based"
+    DATE_BASED = "date-based",
+    REGEX = "regex"
 }

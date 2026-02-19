@@ -9,6 +9,7 @@ function parseBoolean(value: string | undefined): boolean {
 export type ParsedInputs = {
   tag: string;
   versionType: string;
+  versionRegex: string;
   verbose: boolean;
   debugMode: boolean;
 };
@@ -16,6 +17,7 @@ export type ParsedInputs = {
 export function getInputs(): ParsedInputs {
   const tag = core.getInput('tag');
   const versionType = core.getInput('version-type') || 'auto';
+  const versionRegex = core.getInput('version-regex');
   const verboseInput = core.getBooleanInput('verbose');
   const debugMode =
     (typeof core.isDebug === 'function' && core.isDebug()) ||
@@ -27,6 +29,7 @@ export function getInputs(): ParsedInputs {
   return {
     tag,
     versionType,
+    versionRegex,
     verbose,
     debugMode,
   };

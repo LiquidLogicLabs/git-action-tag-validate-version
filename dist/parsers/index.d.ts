@@ -5,7 +5,7 @@ import { VersionParser } from './base';
  */
 export declare class ParserRegistry {
     private readonly parsers;
-    constructor();
+    constructor(regexPattern?: string);
     /**
      * Get parser for a specific version type
      */
