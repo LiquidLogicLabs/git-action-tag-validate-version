@@ -4,11 +4,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
 
-A GitHub Action that validates and parses git tags into structured version information. Supports multiple version formats including semver, simple versioning, Docker tags, calendar versioning, and date-based formats.
+A GitHub Action that validates and parses git tags into structured version information. Supports multiple version formats including semver, simple versioning, Docker tags, calendar versioning, date-based formats, and custom regex patterns.
 
 ## Features
 
 - **Multiple Format Support**: Automatically detects and parses semver, simple, Docker, calver, and date-based version formats
+- **Custom Regex Support**: Supply your own regex pattern to validate and extract version components from any tag scheme
 - **Auto-Detection**: Automatically determines the version format type, or specify it explicitly
 - **Comprehensive Outputs**: Extracts major, minor, patch, prerelease, build metadata, and commit SHA
 - **Flexible Tag Input**: Use a specific tag or automatically use the most recent tag
@@ -125,7 +126,8 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `tag` | Specific tag to parse. If empty, uses most recent tag | No | `''` |
-| `version-type` | Version format type (`auto`, `semver`, `simple`, `docker`, `calver`, `date-based`) | No | `auto` |
+| `version-type` | Version format type (`auto`, `semver`, `simple`, `docker`, `calver`, `date-based`, `regex`) | No | `auto` |
+| `version-regex` | Custom regex pattern used when `version-type` is `regex`. Named groups (`?<major>`, `?<minor>`, `?<patch>`, `?<prerelease>`, `?<build>`) or positional groups (1=major, 2=minor, 3=patch, 4=prerelease, 5=build) are mapped to outputs. Named groups take priority. | No | `''` |
 | `verbose` | Force enable debug logging (sets `ACTIONS_STEP_DEBUG=true`). Can also be enabled via `ACTIONS_STEP_DEBUG` environment variable | No | `false` |
 
 ## Outputs
@@ -134,7 +136,7 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 |--------|-------------|
 | `is-valid` | Boolean indicating if version was successfully validated and parsed |
 | `version` | Normalized version string reconstructed from parsed components (format-compliant, no 'v' prefix, standardized separators). Returns original tag if parsing failed |
-| `format` | Detected version format type (semver, simple, docker, calver, date-based, or empty if invalid) |
+| `format` | Detected version format type (semver, simple, docker, calver, date-based, regex, or empty if invalid) |
 | `major` | Major version number (if available) |
 | `minor` | Minor version number (if available) |
 | `patch` | Patch version number (if available) |
@@ -201,6 +203,35 @@ No special permissions are required. Typical workflows need `contents: read` for
 - `2024-01-15` (YYYY-MM-DD)
 - `2024/01/15` (YYYY/MM/DD)
 
+### Regex (Custom Pattern)
+
+Any tag format you define via a regular expression. Set `version-type: regex` and supply a pattern in `version-regex`.
+
+**Named capture groups** (recommended — explicit field mapping):
+
+```yaml
+version-type: regex
+version-regex: '^v?(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-(?<prerelease>[\w.]+))?$'
+```
+
+**Positional capture groups** (order: 1=major, 2=minor, 3=patch, 4=prerelease, 5=build):
+
+```yaml
+version-type: regex
+version-regex: '^v?(\d+)\.(\d+)\.(\d+)(?:-([\w.]+))?(?:\+([\w.]+))?$'
+```
+
+Named groups take priority over positional groups on a per-field basis. Groups can be mixed freely.
+
+**Validation-only** (no capture groups — just checks the tag matches):
+
+```yaml
+version-type: regex
+version-regex: '^release-\d{8}$'
+```
+
+When no components are captured, `version` falls back to the original tag with any leading `v` stripped.
+
 ## Version Output Normalization
 
 The `version` output is reconstructed from parsed components to ensure a consistent, format-compliant string:
@@ -223,6 +254,7 @@ The `version` output is reconstructed from parsed components to ensure a consist
 - **Date-based**: Standardized to `YYYY-MM-DD` format
   - `20240115` → `2024-01-15`
   - `2024/01/15` → `2024-01-15`
+- **Regex**: Reconstructed from captured components as `major.minor.patch[-prerelease][+build]`; falls back to the stripped original tag when no components are captured
 
 ## Commit SHA Extraction
 
@@ -287,12 +319,55 @@ jobs:
   id: version
 ```
 
+### Using a Custom Regex Pattern
+
+Named capture groups:
+
+```yaml
+- name: Parse custom tag format
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  with:
+    tag: 'n8n@2.9.1'
+    version-type: 'regex'
+    version-regex: '^[a-zA-Z0-9_-]+@v?(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$'
+  id: version
+# outputs: version=2.9.1, major=2, minor=9, patch=1, format=regex
+```
+
+Positional capture groups:
+
+```yaml
+- name: Validate and extract using positional groups
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  with:
+    tag: 'v3.14.1'
+    version-type: 'regex'
+    version-regex: '^v?(\d+)\.(\d+)\.(\d+)$'
+  id: version
+# outputs: version=3.14.1, major=3, minor=14, patch=1, format=regex
+```
+
+Validation-only (no extraction):
+
+```yaml
+- name: Validate tag format only
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  with:
+    tag: 'release-20240115'
+    version-type: 'regex'
+    version-regex: '^release-\d{8}$'
+  id: version
+# outputs: is-valid=true, version=release-20240115, all components empty
+```
+
 ## Error Handling
 
 - **Tag not found**: Sets `is-valid=false`, `version=""`, all other outputs empty
 - **No tags exist**: Sets `is-valid=false`, `version=""`, all other outputs empty
 - **Parse failure**: Sets `is-valid=false`, preserves original `version` string, sets numeric outputs to empty strings
 - **Invalid version-type**: Falls back to `auto` detection
+- **`version-type: regex` with no `version-regex`**: Fails the action with a clear error message
+- **Invalid regex syntax in `version-regex`**: Fails the action with the regex `SyntaxError`
 
 ## Security
 
