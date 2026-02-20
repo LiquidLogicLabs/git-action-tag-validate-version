@@ -1,3 +1,12 @@
+## [2.1.2](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.1...v2.1.2) (2026-02-20)
+
+
+### Features
+
+* parse tag string when provided regardless of local existence ([f37ca11](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/f37ca111a991e72d199ba3a08e4eadab8ce4efa1))
+
+
+
 ## [2.1.1](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.0...v2.1.1) (2026-02-19)
 
 
