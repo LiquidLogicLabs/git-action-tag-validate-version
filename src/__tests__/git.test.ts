@@ -1,17 +1,17 @@
 import { getMostRecentTag, getTag, tagExists } from '../git';
 
-// Mock child_process.exec
+// Mock child_process.exec and execFile
 jest.mock('child_process', () => ({
   exec: jest.fn(),
+  execFile: jest.fn(),
 }));
 
-// Mock util.promisify to return a function that returns a promise
+// Mock util.promisify so it works for both exec(command, options, cb) and execFile(file, args, options, cb)
 jest.mock('util', () => ({
-  promisify: jest.fn((fn) => {
-    return jest.fn((command: string, options?: any) => {
+  promisify: jest.fn((fn: (...a: any[]) => void) => {
+    return jest.fn((...args: any[]) => {
       return new Promise((resolve, reject) => {
-        const mockExec = require('child_process').exec;
-        mockExec(command, options, (error: any, stdout: string, stderr: string) => {
+        fn(...args, (error: any, stdout: string, stderr: string) => {
           if (error) {
             reject(error);
           } else {
@@ -23,8 +23,9 @@ jest.mock('util', () => ({
   }),
 }));
 
-const { exec } = require('child_process');
+const { exec, execFile } = require('child_process');
 const mockedExec = exec as jest.MockedFunction<typeof exec>;
+const mockedExecFile = execFile as jest.MockedFunction<typeof execFile>;
 
 describe('git', () => {
   beforeEach(() => {
@@ -85,9 +86,10 @@ describe('git', () => {
 
   describe('tagExists', () => {
     it('should return true when tag exists', async () => {
-      mockedExec.mockImplementation((command: string, options: any, callback: any) => {
-        if (callback) {
-          callback(null, 'v1.2.3', '');
+      mockedExecFile.mockImplementation((...args: any[]) => {
+        const callback = args[args.length - 1];
+        if (typeof callback === 'function') {
+          callback(null, '', '');
         }
         return {} as any;
       });
@@ -97,8 +99,9 @@ describe('git', () => {
     });
 
     it('should return false when tag does not exist', async () => {
-      mockedExec.mockImplementation((command: string, options: any, callback: any) => {
-        if (callback) {
+      mockedExecFile.mockImplementation((...args: any[]) => {
+        const callback = args[args.length - 1];
+        if (typeof callback === 'function') {
           const error = new Error('Tag not found') as any;
           error.code = 128;
           callback(error, '', 'fatal: ambiguous argument');
@@ -123,9 +126,10 @@ describe('git', () => {
 
   describe('getTag', () => {
     it('should return tag when it exists', async () => {
-      mockedExec.mockImplementation((command: string, options: any, callback: any) => {
-        if (callback) {
-          callback(null, 'v1.2.3', '');
+      mockedExecFile.mockImplementation((...args: any[]) => {
+        const callback = args[args.length - 1];
+        if (typeof callback === 'function') {
+          callback(null, '', '');
         }
         return {} as any;
       });
@@ -135,8 +139,9 @@ describe('git', () => {
     });
 
     it('should return null when tag does not exist', async () => {
-      mockedExec.mockImplementation((command: string, options: any, callback: any) => {
-        if (callback) {
+      mockedExecFile.mockImplementation((...args: any[]) => {
+        const callback = args[args.length - 1];
+        if (typeof callback === 'function') {
           const error = new Error('Tag not found') as any;
           error.code = 128;
           callback(error, '', 'fatal: ambiguous argument');
@@ -154,9 +159,10 @@ describe('git', () => {
     });
 
     it('should trim tag name', async () => {
-      mockedExec.mockImplementation((command: string, options: any, callback: any) => {
-        if (callback) {
-          callback(null, 'v1.2.3', '');
+      mockedExecFile.mockImplementation((...args: any[]) => {
+        const callback = args[args.length - 1];
+        if (typeof callback === 'function') {
+          callback(null, '', '');
         }
         return {} as any;
       });

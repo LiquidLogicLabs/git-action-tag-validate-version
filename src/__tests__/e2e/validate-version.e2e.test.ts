@@ -117,6 +117,21 @@ describe('E2E: validate version', () => {
     expect(out.major).toBe('2');
     expect(out.minor).toBe('0');
     expect(out.patch).toBe('0');
+    expect(out['tag-exists']).toBe('true');
+  });
+
+  it('parses tag string when INPUT_TAG is set but tag does not exist locally', async () => {
+    process.env.INPUT_TAG = 'v9.9.9';
+
+    await run();
+
+    const out = parseGithubOutput(outputFile);
+    expect(out['is-valid']).toBe('true');
+    expect(out.version).toBe('9.9.9');
+    expect(out.major).toBe('9');
+    expect(out.minor).toBe('9');
+    expect(out.patch).toBe('9');
+    expect(out['tag-exists']).toBe('false');
   });
 
   it('sets is-valid false and empty version when no tags exist', async () => {

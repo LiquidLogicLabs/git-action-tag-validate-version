@@ -25724,6 +25724,7 @@ exports.getTag = getTag;
 const child_process_1 = __nccwpck_require__(5317);
 const util_1 = __nccwpck_require__(9023);
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
+const execFileAsync = (0, util_1.promisify)(child_process_1.execFile);
 /**
  * Get the most recent tag from the repository
  * Uses `git describe --tags --abbrev=0` to get the most recent tag
@@ -25742,14 +25743,16 @@ async function getMostRecentTag() {
     }
 }
 /**
- * Check if a tag exists locally
+ * Check if a tag exists locally.
+ * Uses execFile with argument array so tagName is never interpreted by the shell.
  */
 async function tagExists(tagName) {
     if (!tagName || tagName.trim() === '') {
         return false;
     }
+    const trimmed = tagName.trim();
     try {
-        await execAsync(`git rev-parse --verify --quiet ${tagName}`, {
+        await execFileAsync('git', ['rev-parse', '--verify', '--quiet', trimmed], {
             maxBuffer: 1024 * 1024,
         });
         return true;
@@ -25836,16 +25839,17 @@ async function run() {
         }
         // Get tag (from input or most recent)
         let tag = null;
+        let tagExistsLocally = null; // only set when tag input was provided
         if (tagInput && tagInput.trim() !== '') {
-            logger.verboseInfo(`Looking for specified tag: ${tagInput}`);
-            tag = await (0, git_1.getTag)(tagInput.trim());
-            if (!tag) {
-                logger.warning(`Tag '${tagInput}' not found`);
-                // Tag not found - set outputs to empty
-                setEmptyOutputs();
-                return;
+            tag = tagInput.trim();
+            logger.verboseInfo(`Using specified tag: ${tag}`);
+            tagExistsLocally = await (0, git_1.tagExists)(tag);
+            if (!tagExistsLocally) {
+                logger.warning(`Tag '${tag}' not found in repository; parsing tag string only.`);
             }
-            logger.info(`Found tag: ${tag}`);
+            else {
+                logger.info(`Found tag: ${tag}`);
+            }
         }
         else {
             logger.verboseInfo(`No tag specified, getting most recent tag`);
@@ -25941,6 +25945,9 @@ async function run() {
         core.setOutput('day', day);
         core.setOutput('has-prerelease', hasPrerelease);
         core.setOutput('has-build', hasBuild);
+        if (tagExistsLocally !== null) {
+            core.setOutput('tag-exists', tagExistsLocally.toString());
+        }
         // Output summary showing the parsed version (this is what will be in the output)
         if (parseResult.isValid) {
             logger.info(`📦 Version output: ${parseResult.version}`);

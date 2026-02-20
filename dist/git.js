@@ -6,6 +6,7 @@ exports.getTag = getTag;
 const child_process_1 = require("child_process");
 const util_1 = require("util");
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
+const execFileAsync = (0, util_1.promisify)(child_process_1.execFile);
 /**
  * Get the most recent tag from the repository
  * Uses `git describe --tags --abbrev=0` to get the most recent tag
@@ -24,14 +25,16 @@ async function getMostRecentTag() {
     }
 }
 /**
- * Check if a tag exists locally
+ * Check if a tag exists locally.
+ * Uses execFile with argument array so tagName is never interpreted by the shell.
  */
 async function tagExists(tagName) {
     if (!tagName || tagName.trim() === '') {
         return false;
     }
+    const trimmed = tagName.trim();
     try {
-        await execAsync(`git rev-parse --verify --quiet ${tagName}`, {
+        await execFileAsync('git', ['rev-parse', '--verify', '--quiet', trimmed], {
             maxBuffer: 1024 * 1024,
         });
         return true;

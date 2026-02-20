@@ -1,7 +1,8 @@
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 /**
  * Get the most recent tag from the repository
@@ -21,15 +22,17 @@ export async function getMostRecentTag(): Promise<string | null> {
 }
 
 /**
- * Check if a tag exists locally
+ * Check if a tag exists locally.
+ * Uses execFile with argument array so tagName is never interpreted by the shell.
  */
 export async function tagExists(tagName: string): Promise<boolean> {
   if (!tagName || tagName.trim() === '') {
     return false;
   }
 
+  const trimmed = tagName.trim();
   try {
-    await execAsync(`git rev-parse --verify --quiet ${tagName}`, {
+    await execFileAsync('git', ['rev-parse', '--verify', '--quiet', trimmed], {
       maxBuffer: 1024 * 1024,
     });
     return true;

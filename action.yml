@@ -47,6 +47,8 @@ outputs:
     description: 'Boolean indicating if semver version has prerelease identifier'
   has-build:
     description: 'Boolean indicating if semver version has build metadata'
+  tag-exists:
+    description: 'Whether the provided tag was found in the local repository (only set when tag input is provided)'
 runs:
   using: 'node20'
   main: 'dist/index.js'

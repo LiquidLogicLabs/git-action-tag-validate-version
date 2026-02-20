@@ -4,7 +4,8 @@
  */
 export declare function getMostRecentTag(): Promise<string | null>;
 /**
- * Check if a tag exists locally
+ * Check if a tag exists locally.
+ * Uses execFile with argument array so tagName is never interpreted by the shell.
  */
 export declare function tagExists(tagName: string): Promise<boolean>;
 /**

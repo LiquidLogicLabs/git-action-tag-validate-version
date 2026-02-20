@@ -12,7 +12,7 @@ A GitHub Action that validates and parses git tags into structured version infor
 - **Custom Regex Support**: Supply your own regex pattern to validate and extract version components from any tag scheme
 - **Auto-Detection**: Automatically determines the version format type, or specify it explicitly
 - **Comprehensive Outputs**: Extracts major, minor, patch, prerelease, build metadata, and commit SHA
-- **Flexible Tag Input**: Use a specific tag or automatically use the most recent tag
+- **Flexible Tag Input**: Use a specific tag or automatically use the most recent tag. When a tag is provided, the action parses that string regardless of whether the tag exists in the repository; if it does not exist locally, a warning is emitted and parsing-based outputs are still set (the `tag-exists` output indicates whether the tag was found)
 - **Verbose Logging**: Optional debug output via `verbose` input flag or `ACTIONS_STEP_DEBUG` environment variable
 - **Extensible Architecture**: Easy to add new version format parsers
 
@@ -125,7 +125,7 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `tag` | Specific tag to parse. If empty, uses most recent tag | No | `''` |
+| `tag` | Specific tag to parse. If empty, uses most recent tag. When set, the tag string is always parsed; if the tag does not exist in the repo, a warning is logged and `tag-exists` is `false`. | No | `''` |
 | `version-type` | Version format type (`auto`, `semver`, `simple`, `docker`, `calver`, `date-based`, `regex`) | No | `auto` |
 | `version-regex` | Custom regex pattern used when `version-type` is `regex`. Named groups (`?<major>`, `?<minor>`, `?<patch>`, `?<prerelease>`, `?<build>`) or positional groups (1=major, 2=minor, 3=patch, 4=prerelease, 5=build) are mapped to outputs. Named groups take priority. | No | `''` |
 | `verbose` | Force enable debug logging (sets `ACTIONS_STEP_DEBUG=true`). Can also be enabled via `ACTIONS_STEP_DEBUG` environment variable | No | `false` |
@@ -148,6 +148,7 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 | `day` | Day component (for calver and date-based formats only) |
 | `has-prerelease` | Boolean indicating if semver version has prerelease identifier |
 | `has-build` | Boolean indicating if semver version has build metadata |
+| `tag-exists` | Whether the provided tag was found in the local repository (only set when `tag` input is provided) |
 
 ## Permissions
 
@@ -362,8 +363,8 @@ Validation-only (no extraction):
 
 ## Error Handling
 
-- **Tag not found**: Sets `is-valid=false`, `version=""`, all other outputs empty
-- **No tags exist**: Sets `is-valid=false`, `version=""`, all other outputs empty
+- **Tag provided but not in repository**: Logs a warning and parses the tag string anyway; all version outputs are set from parsing, and `tag-exists` is `false`. Use this output to branch when the tag ref is required (e.g. for git operations).
+- **No tag provided and no tags exist**: Sets `is-valid=false`, `version=""`, all other outputs empty
 - **Parse failure**: Sets `is-valid=false`, preserves original `version` string, sets numeric outputs to empty strings
 - **Invalid version-type**: Falls back to `auto` detection
 - **`version-type: regex` with no `version-regex`**: Fails the action with a clear error message

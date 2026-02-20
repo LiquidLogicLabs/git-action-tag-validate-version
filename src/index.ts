@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { getInputs } from './config';
 import { VersionType } from './types';
 import { ParserRegistry } from './parsers';
-import { getTag, getMostRecentTag } from './git';
+import { tagExists, getMostRecentTag } from './git';
 import { extractCommit } from './utils/commit-extractor';
 import { Logger } from './logger';
 
@@ -23,17 +23,17 @@ async function run(): Promise<void> {
 
     // Get tag (from input or most recent)
     let tag: string | null = null;
+    let tagExistsLocally: boolean | null = null; // only set when tag input was provided
 
     if (tagInput && tagInput.trim() !== '') {
-      logger.verboseInfo(`Looking for specified tag: ${tagInput}`);
-      tag = await getTag(tagInput.trim());
-      if (!tag) {
-        logger.warning(`Tag '${tagInput}' not found`);
-        // Tag not found - set outputs to empty
-        setEmptyOutputs();
-        return;
+      tag = tagInput.trim();
+      logger.verboseInfo(`Using specified tag: ${tag}`);
+      tagExistsLocally = await tagExists(tag);
+      if (!tagExistsLocally) {
+        logger.warning(`Tag '${tag}' not found in repository; parsing tag string only.`);
+      } else {
+        logger.info(`Found tag: ${tag}`);
       }
-      logger.info(`Found tag: ${tag}`);
     } else {
       logger.verboseInfo(`No tag specified, getting most recent tag`);
       tag = await getMostRecentTag();
@@ -136,6 +136,9 @@ async function run(): Promise<void> {
     core.setOutput('day', day);
     core.setOutput('has-prerelease', hasPrerelease);
     core.setOutput('has-build', hasBuild);
+    if (tagExistsLocally !== null) {
+      core.setOutput('tag-exists', tagExistsLocally.toString());
+    }
 
     // Output summary showing the parsed version (this is what will be in the output)
     if (parseResult.isValid) {

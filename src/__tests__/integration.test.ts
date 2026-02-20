@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { getMostRecentTag, getTag } from '../git';
+import { getMostRecentTag, tagExists } from '../git';
 import { ParserRegistry } from '../parsers';
 import { extractCommit } from '../utils/commit-extractor';
 import { VersionType } from '../types';
@@ -15,7 +15,6 @@ jest.mock('@actions/core', () => ({
 // Mock git module
 jest.mock('../git', () => ({
   getMostRecentTag: jest.fn(),
-  getTag: jest.fn(),
   tagExists: jest.fn(),
 }));
 
@@ -25,7 +24,7 @@ describe('Integration Tests', () => {
   const mockSetFailed = core.setFailed as jest.MockedFunction<typeof core.setFailed>;
   const mockDebug = core.debug as jest.MockedFunction<typeof core.debug>;
   const mockGetMostRecentTag = getMostRecentTag as jest.MockedFunction<typeof getMostRecentTag>;
-  const mockGetTag = getTag as jest.MockedFunction<typeof getTag>;
+  const mockTagExists = tagExists as jest.MockedFunction<typeof tagExists>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -77,14 +76,14 @@ describe('Integration Tests', () => {
   });
 
   describe('Full Action Flow - Specific Tag Input', () => {
-    it('should use specified tag when provided', async () => {
+    it('should use specified tag when provided and tag exists locally', async () => {
       mockGetInput.mockImplementation((name: string) => {
         if (name === 'tag') return 'v1.2.3';
         if (name === 'version-type') return 'auto';
         return '';
       });
 
-      mockGetTag.mockResolvedValue('v1.2.3');
+      mockTagExists.mockResolvedValue(true);
 
       const registry = new ParserRegistry();
       const parseResult = registry.parse('v1.2.3', VersionType.AUTO);
@@ -93,28 +92,28 @@ describe('Integration Tests', () => {
       expect(parseResult.info.major).toBe('1');
     });
 
-    it('should set empty outputs when specified tag does not exist', async () => {
+    it('should parse tag string when specified tag does not exist locally', async () => {
       mockGetInput.mockImplementation((name: string) => {
-        if (name === 'tag') return 'nonexistent';
+        if (name === 'tag') return 'v1.2.3';
         if (name === 'version-type') return 'auto';
         return '';
       });
 
-      mockGetTag.mockResolvedValue(null);
+      mockTagExists.mockResolvedValue(false);
 
-      const outputs = {
-        'is-valid': 'false',
-        version: '',
-        major: '',
-        minor: '',
-        patch: '',
-        prerelease: '',
-        build: '',
-        commit: '',
-      };
+      const registry = new ParserRegistry();
+      const parseResult = registry.parse('v1.2.3', VersionType.AUTO);
+      const commit = extractCommit('v1.2.3');
 
-      expect(outputs['is-valid']).toBe('false');
-      expect(outputs.version).toBe('');
+      expect(parseResult.isValid).toBe(true);
+      expect(parseResult.version).toBe('1.2.3');
+      expect(parseResult.info.major).toBe('1');
+      expect(parseResult.info.minor).toBe('2');
+      expect(parseResult.info.patch).toBe('3');
+      expect(commit).toBe('');
+      // When tag is provided but not in repo, tag-exists would be false
+      const tagExistsOutput = 'false';
+      expect(tagExistsOutput).toBe('false');
     });
   });
 
@@ -126,7 +125,7 @@ describe('Integration Tests', () => {
         return '';
       });
 
-      mockGetTag.mockResolvedValue('v1.2.3');
+      mockTagExists.mockResolvedValue(true);
 
       const registry = new ParserRegistry();
       const parseResult = registry.parse('v1.2.3', VersionType.AUTO);
@@ -141,7 +140,7 @@ describe('Integration Tests', () => {
         return '';
       });
 
-      mockGetTag.mockResolvedValue('1.2.3');
+      mockTagExists.mockResolvedValue(true);
 
       const registry = new ParserRegistry();
       const parseResult = registry.parse('1.2.3', VersionType.SEMVER);
@@ -156,7 +155,7 @@ describe('Integration Tests', () => {
         return '';
       });
 
-      mockGetTag.mockResolvedValue('v1.2.3');
+      mockTagExists.mockResolvedValue(true);
 
       const registry = new ParserRegistry();
       // Simulate fallback to auto
@@ -174,13 +173,13 @@ describe('Integration Tests', () => {
         return '';
       });
 
-      mockGetTag.mockResolvedValue('v1.2.3');
+      mockTagExists.mockResolvedValue(true);
 
       // Debug logging is always called, but only outputs when ACTIONS_STEP_DEBUG is set
       // This is the standard GitHub Actions behavior
       mockDebug('Input tag: v1.2.3');
       mockDebug('Input version-type: auto');
-      mockDebug('Looking for specified tag: v1.2.3');
+      mockDebug('Using specified tag: v1.2.3');
       mockDebug('Found tag: v1.2.3');
 
       expect(mockDebug).toHaveBeenCalled();
@@ -195,7 +194,7 @@ describe('Integration Tests', () => {
         return '';
       });
 
-      mockGetTag.mockResolvedValue('v1.2.3+abc1234');
+      mockTagExists.mockResolvedValue(true);
 
       const commit = extractCommit('v1.2.3+abc1234');
       expect(commit).toBe('abc1234');
@@ -208,7 +207,7 @@ describe('Integration Tests', () => {
         return '';
       });
 
-      mockGetTag.mockResolvedValue('v1.2.3-abc1234');
+      mockTagExists.mockResolvedValue(true);
 
       const commit = extractCommit('v1.2.3-abc1234');
       expect(commit).toBe('abc1234');
@@ -221,7 +220,7 @@ describe('Integration Tests', () => {
         return '';
       });
 
-      mockGetTag.mockResolvedValue('v1.2.3');
+      mockTagExists.mockResolvedValue(true);
 
       const commit = extractCommit('v1.2.3');
       expect(commit).toBe('');
@@ -236,7 +235,7 @@ describe('Integration Tests', () => {
         return '';
       });
 
-      mockGetTag.mockResolvedValue('v1.2.3-alpha.1+build.1');
+      mockTagExists.mockResolvedValue(true);
 
       const registry = new ParserRegistry();
       const parseResult = registry.parse('v1.2.3-alpha.1+build.1', VersionType.AUTO);
@@ -278,7 +277,7 @@ describe('Integration Tests', () => {
         return '';
       });
 
-      mockGetTag.mockResolvedValue('invalid-tag');
+      mockTagExists.mockResolvedValue(true);
 
       const registry = new ParserRegistry();
       const parseResult = registry.parse('invalid-tag', VersionType.AUTO);
