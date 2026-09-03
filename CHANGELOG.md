@@ -1,3 +1,13 @@
+## [2.1.5](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.4...v2.1.5) (2026-09-03)
+
+
+### Bug Fixes
+
+* **lint:** quote eslint glob so all of src/ is linted ([465ad90](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/465ad903e6803e375399886a105f88cbb4383cfb))
+* **lint:** resolve errors surfaced by the widened glob ([d149eb8](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/d149eb888e839a39c3f419c9460d7dee7e81196a))
+
+
+
 ## [2.1.4](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.3...v2.1.4) (2026-07-05)
 
 
