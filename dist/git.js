@@ -19,7 +19,7 @@ async function getMostRecentTag() {
         const tag = stdout.trim();
         return tag || null;
     }
-    catch (error) {
+    catch {
         // No tags found or other error
         return null;
     }
@@ -39,7 +39,7 @@ async function tagExists(tagName) {
         });
         return true;
     }
-    catch (error) {
+    catch {
         return false;
     }
 }

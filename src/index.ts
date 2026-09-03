@@ -54,7 +54,7 @@ async function run(): Promise<void> {
         logger.verboseInfo(`Invalid version-type '${versionTypeInput}', falling back to auto`);
         versionType = VersionType.AUTO;
       }
-    } catch (error) {
+    } catch {
       logger.verboseInfo(`Error parsing version-type, falling back to auto`);
       versionType = VersionType.AUTO;
     }

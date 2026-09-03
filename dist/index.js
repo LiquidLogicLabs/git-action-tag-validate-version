@@ -31371,7 +31371,7 @@ async function getMostRecentTag() {
         const tag = stdout.trim();
         return tag || null;
     }
-    catch (error) {
+    catch {
         // No tags found or other error
         return null;
     }
@@ -31391,7 +31391,7 @@ async function tagExists(tagName) {
         });
         return true;
     }
-    catch (error) {
+    catch {
         return false;
     }
 }
@@ -31505,7 +31505,7 @@ async function run() {
                 versionType = types_1.VersionType.AUTO;
             }
         }
-        catch (error) {
+        catch {
             logger.verboseInfo(`Error parsing version-type, falling back to auto`);
             versionType = types_1.VersionType.AUTO;
         }

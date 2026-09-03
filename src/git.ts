@@ -15,7 +15,7 @@ export async function getMostRecentTag(): Promise<string | null> {
     });
     const tag = stdout.trim();
     return tag || null;
-  } catch (error) {
+  } catch {
     // No tags found or other error
     return null;
   }
@@ -36,7 +36,7 @@ export async function tagExists(tagName: string): Promise<boolean> {
       maxBuffer: 1024 * 1024,
     });
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
