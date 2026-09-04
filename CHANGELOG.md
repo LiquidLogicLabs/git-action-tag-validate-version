@@ -1,3 +1,7 @@
+## [2.1.7](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.6...v2.1.7) (2026-09-04)
+
+
+
 ## [2.1.6](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.5...v2.1.6) (2026-09-04)
 
 
