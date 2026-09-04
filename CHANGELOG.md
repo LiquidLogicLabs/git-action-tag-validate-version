@@ -1,3 +1,12 @@
+## [2.1.6](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.5...v2.1.6) (2026-09-04)
+
+
+### Bug Fixes
+
+* resolve tags only in tagExists, closing a wrong output and an option slot ([78efc28](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/78efc289309ed1cfe3fbae81e0126467d4d8d3da))
+
+
+
 ## [2.1.5](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.4...v2.1.5) (2026-09-03)
 
 
