@@ -16,37 +16,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          # No step in this job pushes; the credential is not needed.
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Run action with tag (from ref / repo tags)
         id: validate
-        uses: ./
+        uses: ./  # zizmor: ignore[self-repository] — local ACTION reference under test, not a reusable-workflow call; $/ does not apply
         with:
           tag: ${{ github.ref_name }}
           version-type: auto
 
       - name: Verify outputs
         shell: bash
+        env:
+          Z_VALIDATE_OUTPUTS_VERSION: ${{ steps.validate.outputs.version }}
+          Z_VALIDATE_OUTPUTS_IS_VALID: ${{ steps.validate.outputs.is-valid }}
+          Z_VALIDATE_OUTPUTS_HAS_PRERELEASE: ${{ steps.validate.outputs.has-prerelease }}
         run: |
           set -euo pipefail
-          echo "version: ${{ steps.validate.outputs.version }}"
-          echo "is-valid: ${{ steps.validate.outputs.is-valid }}"
-          echo "has-prerelease: ${{ steps.validate.outputs.has-prerelease }}"
-          [ -n "${{ steps.validate.outputs.version }}" ]
-          [ "${{ steps.validate.outputs.is-valid }}" = "true" ] || [ "${{ steps.validate.outputs.is-valid }}" = "false" ]
+          echo "version: ${Z_VALIDATE_OUTPUTS_VERSION}"
+          echo "is-valid: ${Z_VALIDATE_OUTPUTS_IS_VALID}"
+          echo "has-prerelease: ${Z_VALIDATE_OUTPUTS_HAS_PRERELEASE}"
+          [ -n "${Z_VALIDATE_OUTPUTS_VERSION}" ]
+          [ "${Z_VALIDATE_OUTPUTS_IS_VALID}" = "true" ] || [ "${Z_VALIDATE_OUTPUTS_IS_VALID}" = "false" ]
 
       - name: Run action with explicit tag v1.0.0
         id: explicit
-        uses: ./
+        uses: ./  # zizmor: ignore[self-repository] — local ACTION reference under test, not a reusable-workflow call; $/ does not apply
         with:
           tag: v1.0.0
           version-type: auto
 
       - name: Verify explicit tag outputs
         shell: bash
+        env:
+          Z_EXPLICIT_OUTPUTS_IS_VALID: ${{ steps.explicit.outputs.is-valid }}
+          Z_EXPLICIT_OUTPUTS_VERSION: ${{ steps.explicit.outputs.version }}
         run: |
           set -euo pipefail
-          [ "${{ steps.explicit.outputs.is-valid }}" = "true" ]
-          [ "${{ steps.explicit.outputs.version }}" = "1.0.0" ] || [ "${{ steps.explicit.outputs.version }}" = "v1.0.0" ]
+          [ "${Z_EXPLICIT_OUTPUTS_IS_VALID}" = "true" ]
+          [ "${Z_EXPLICIT_OUTPUTS_VERSION}" = "1.0.0" ] || [ "${Z_EXPLICIT_OUTPUTS_VERSION}" = "v1.0.0" ]
