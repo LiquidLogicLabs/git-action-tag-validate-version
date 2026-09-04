@@ -31386,7 +31386,11 @@ async function tagExists(tagName) {
     }
     const trimmed = tagName.trim();
     try {
-        await execFileAsync('git', ['rev-parse', '--verify', '--quiet', trimmed], {
+        // Qualified as refs/tags/<name> for two reasons. It resolves TAGS only: the bare form
+        // accepts a branch, HEAD or a raw SHA, so `tagExists('main')` returned true and the
+        // action's tag-exists output was wrong. And a qualified ref can never begin with "-",
+        // so the value cannot occupy an option slot in git's argument parser.
+        await execFileAsync('git', ['rev-parse', '--verify', '--quiet', `refs/tags/${trimmed}`], {
             maxBuffer: 1024 * 1024,
         });
         return true;
