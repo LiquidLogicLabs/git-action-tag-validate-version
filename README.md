@@ -1,4 +1,4 @@
-# Git Tag Validate Version Action
+# Git Tag Validate Version
 
 [![CI](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/actions/workflows/ci.yml/badge.svg)](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -22,7 +22,7 @@ A GitHub Action that validates and parses git tags into structured version infor
 
 ```yaml
 - name: Parse version from most recent tag
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   id: version
 ```
 
@@ -30,7 +30,7 @@ A GitHub Action that validates and parses git tags into structured version infor
 
 ```yaml
 - name: Parse specific tag
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   with:
     tag: 'v1.2.3'
   id: version
@@ -40,7 +40,7 @@ A GitHub Action that validates and parses git tags into structured version infor
 
 ```yaml
 - name: Parse as semver
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   with:
     tag: 'v1.2.3-alpha.1'
     version-type: 'semver'
@@ -55,7 +55,7 @@ Verbose logging can be enabled in two ways:
 
 ```yaml
 - name: Parse version with debug logging
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   with:
     tag: 'v1.2.3'
     verbose: 'true'
@@ -83,7 +83,7 @@ jobs:
           fetch-depth: 0
 
       - name: Parse version with debug logging
-        uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+        uses: LiquidLogicLabs/git-action-tag-validate-version@v2
         with:
           tag: 'v1.2.3'
         id: version
@@ -93,7 +93,7 @@ Or enable it for a specific step:
 
 ```yaml
 - name: Parse version with debug logging
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   env:
     ACTIONS_STEP_DEBUG: true
   with:
@@ -107,7 +107,7 @@ Both methods enable the same debug output. The `verbose` input flag is a conveni
 
 ```yaml
 - name: Parse version
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   id: version
 
 - name: Use parsed version
@@ -287,7 +287,7 @@ jobs:
           fetch-depth: 0
 
       - name: Parse version
-        uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+        uses: LiquidLogicLabs/git-action-tag-validate-version@v2
         id: version
 
       - name: Create release
@@ -302,7 +302,7 @@ jobs:
 
 ```yaml
 - name: Parse Docker tag
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   with:
     tag: '1.2.3-alpine'
     version-type: 'docker'
@@ -313,7 +313,7 @@ jobs:
 
 ```yaml
 - name: Parse calver tag
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   with:
     tag: '2024.01.15'
     version-type: 'calver'
@@ -326,7 +326,7 @@ Named capture groups:
 
 ```yaml
 - name: Parse custom tag format
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   with:
     tag: 'n8n@2.9.1'
     version-type: 'regex'
@@ -339,7 +339,7 @@ Positional capture groups:
 
 ```yaml
 - name: Validate and extract using positional groups
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   with:
     tag: 'v3.14.1'
     version-type: 'regex'
@@ -352,7 +352,7 @@ Validation-only (no extraction):
 
 ```yaml
 - name: Validate tag format only
-  uses: LiquidLogicLabs/git-action-tag-validate-version@v1
+  uses: LiquidLogicLabs/git-action-tag-validate-version@v2
   with:
     tag: 'release-20240115'
     version-type: 'regex'
