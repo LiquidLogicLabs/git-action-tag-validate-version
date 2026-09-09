@@ -1,5 +1,5 @@
 name: 'Git Tag Validate Version'
-description: 'Validate and parse git tags into structured version information supporting multiple version formats (semver, simple, docker, calver, date-based)'
+description: 'Validate a git tag and parse it into version components, supporting semver, calver, docker and date-based formats.'
 author: 'LiquidLogicLabs'
 inputs:
   tag:
