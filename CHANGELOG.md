@@ -1,3 +1,14 @@
+## [2.1.8](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.7...v2.1.8) (2026-09-09)
+
+
+### Bug Fixes
+
+* **release-notes:** categorise revert commits under Maintenance ([6ffadc2](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/6ffadc2e79300a4465d4c9bc46a44b1d72bb5783))
+* **release-notes:** categorise the changelog by conventional-commit type ([bb9af46](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/bb9af4687ecb054e68720a0d1eadeb84a4aabfdb))
+* **release-notes:** drop the dead PR_LIST placeholder ([304abf9](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/commit/304abf9374c374c54beabc108ebf721e71091933))
+
+
+
 ## [2.1.7](https://github.com/LiquidLogicLabs/git-action-tag-validate-version/compare/v2.1.6...v2.1.7) (2026-09-04)
 
 
